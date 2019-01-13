@@ -1,0 +1,1 @@
+<div>layouts/include.tpl Подключен</div>
