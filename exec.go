@@ -1,6 +1,7 @@
 package xtpl
 
 import (
+	"math"
 	"regexp"
 	"strings"
 )
@@ -75,8 +76,11 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 	var reAssign = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?=[\s]?(.*)`)
 	var rePlusPlus = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?\+\+`)
 	var reMinusMinus = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?--`)
+	var reShortStyle = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?[\+\-\*\/\\\%\^]{1}=[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
 	var reMultiple = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?\*[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
+	var reExponentiation = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?\^[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
 	var reDivision = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?/[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
+	var reDivisionWithoutRemainder = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?\\[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
 	var reDivisionRemainder = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?%[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
 	var reAddition = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?\+[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
 	var reSubtraction = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?-[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
@@ -136,6 +140,66 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 		})
 	}
 
+	for reShortStyle.MatchString(expr) {
+		expr = reShortStyle.ReplaceAllStringFunc(expr, func(s string) string {
+			var firstVar, secondVar, operator string
+			var arr []string
+			switch {
+			case strings.Contains(s, "+="):
+				arr = strings.Split(s, "+=")
+				operator = "+"
+			case strings.Contains(s, "-="):
+				arr = strings.Split(s, "-=")
+				operator = "-"
+			case strings.Contains(s, "*="):
+				arr = strings.Split(s, "*=")
+				operator = "*"
+			case strings.Contains(s, "/="):
+				arr = strings.Split(s, "/=")
+				operator = "/"
+			case strings.Contains(s, "%="):
+				arr = strings.Split(s, "%=")
+				operator = "%"
+			case strings.Contains(s, "\\="):
+				arr = strings.Split(s, "\\=")
+				operator = "\\"
+			case strings.Contains(s, "^="):
+				arr = strings.Split(s, "^=")
+				operator = "^"
+			}
+			firstVar = strings.TrimSpace(arr[0])
+			secondVar = strings.TrimSpace(arr[1])
+			return firstVar + " = " + firstVar + operator + secondVar
+		})
+	}
+
+	// Возведение в степень
+	for reExponentiation.MatchString(expr) {
+		expr = reExponentiation.ReplaceAllStringFunc(expr, func(s string) string {
+			var varName = newVarName()
+			var arr = strings.Split(s, "^")
+			var firstVar = strings.TrimSpace(arr[0])
+			var secondVar = strings.TrimSpace(arr[1])
+
+			functions = append(functions, func(vars *xVarCollection) []byte {
+				var firstValue, secondValue *xVar
+				if strings.HasPrefix(firstVar, "$") {
+					firstValue = vars.getVar(firstVar)
+				} else {
+					firstValue = xVarInit("", firstVar)
+				}
+				if strings.HasPrefix(secondVar, "$") {
+					secondValue = vars.getVar(secondVar)
+				} else {
+					secondValue = xVarInit("", secondVar)
+				}
+				vars.setVar(varName, math.Pow(firstValue.toFloat(), secondValue.toFloat()))
+				return nil
+			})
+			return varName
+		})
+	}
+
 	// Умножение
 	for reMultiple.MatchString(expr) {
 		expr = reMultiple.ReplaceAllStringFunc(expr, func(s string) string {
@@ -188,6 +252,38 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 					vars.setVar(varName, "Error: divide by zero")
 				} else {
 					vars.setVar(varName, firstValue.toFloat()/sVal)
+				}
+				return nil
+			})
+			return varName
+		})
+	}
+
+	//Деление без остатка
+	for reDivisionWithoutRemainder.MatchString(expr) {
+		expr = reDivisionWithoutRemainder.ReplaceAllStringFunc(expr, func(s string) string {
+			var varName = newVarName()
+			var arr = strings.Split(s, "\\")
+			var firstVar = strings.TrimSpace(arr[0])
+			var secondVar = strings.TrimSpace(arr[1])
+
+			functions = append(functions, func(vars *xVarCollection) []byte {
+				var firstValue, secondValue *xVar
+				if strings.HasPrefix(firstVar, "$") {
+					firstValue = vars.getVar(firstVar)
+				} else {
+					firstValue = xVarInit("", firstVar)
+				}
+				if strings.HasPrefix(secondVar, "$") {
+					secondValue = vars.getVar(secondVar)
+				} else {
+					secondValue = xVarInit("", secondVar)
+				}
+				sVal := secondValue.toInt()
+				if sVal == 0 {
+					vars.setVar(varName, "Error: divide by zero")
+				} else {
+					vars.setVar(varName, int64(firstValue.toInt() / sVal))
 				}
 				return nil
 			})

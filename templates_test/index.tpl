@@ -72,11 +72,54 @@
             <li>{{$number1}} - {{$number2}} = {{$number1 - $number2}}</li>
             <li>{{$number1}} * {{$number2}} = {{$number1 * $number2}}</li>
             <li>{{$number1}} / {{$number2}} = {{$number1 / $number2}}</li>
+            <li>{{$number1}} \ {{$number2}} = {{$number1 \ $number2}}</li> {* Деление без остатка, с отбрасыванием дробной части *}
             <li>{{$number1}} % {{$number2}} = {{$number1 % $number2}}</li>
+            <li>{{$number1}} ^ {{$number2}} = {{$number1 ^ $number2}}</li>
         @endforeach
     @endforeach
     </ul>
-    
+
+    <h2>Математические операции (краткая запись с присвоением)</h2>
+    <ul>
+    @for($i = 1; $i <= 5; $i++)
+        <li>
+            $myVar = {{$i}}<br> @exec($myVar = $i)
+            $myVar += 6<br> @exec($myVar += 6)
+            $myVar = {{$myVar}}
+        </li>
+        <li>
+            $myVar = {{$i}}<br> @exec($myVar = $i)
+            $myVar -= 6<br> @exec($myVar -= 6)
+            $myVar = {{$myVar}}
+        </li>
+        <li>
+            $myVar = {{$i}}<br> @exec($myVar = $i)
+            $myVar *= 6<br> @exec($myVar *= 6)
+            $myVar = {{$myVar}}
+        </li>
+        <li>
+            $myVar = {{$i}}<br> @exec($myVar = $i)
+            $myVar /= 6<br> @exec($myVar /= 6)
+            $myVar = {{$myVar}}
+        </li>
+        <li>
+            $myVar = {{$i}}<br> @exec($myVar = $i)
+            $myVar \= 6<br> @exec($myVar \= 6)
+            $myVar = {{$myVar}}
+        </li>
+        <li>
+            $myVar = {{$i}}<br> @exec($myVar = $i)
+            $myVar %= 6<br> @exec($myVar %= 6)
+            $myVar = {{$myVar}}
+        </li>
+        <li>
+            $myVar = {{$i}}<br> @exec($myVar = $i)
+            $myVar ^= 6<br> @exec($myVar ^= 6)
+            $myVar = {{$myVar}}
+        </li>
+    @endfor
+    </ul>
+
     <h2>Конкатенация строк</h2>
     <ul>
     @foreach($strings as $string1)
