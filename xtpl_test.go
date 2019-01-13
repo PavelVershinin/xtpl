@@ -2,7 +2,6 @@ package xtpl
 
 import (
 	"bytes"
-	"github.com/PavelVershinin/GoWeb/web"
 	"io/ioutil"
 	"testing"
 	"time"
@@ -51,6 +50,4 @@ func TestNewCollection(t *testing.T) {
 	if !bytes.Equal(normal, buff.Bytes()) {
 		t.Errorf("Возможно, что-то пошло не так, результат обработки шаблона не совпадает с образцом")
 	}
-
-	web.FilePutContents("./templates_test/index.html", buff.String())
 }
