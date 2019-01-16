@@ -31,7 +31,7 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 		}
 	}
 
-	// Выгребаем функции
+	// Выгребаем пользовательские функции
 	for i := 0; i < len(src); i++ {
 		if f, offset := x.userFunction(src[i:], false); f != nil {
 			var varName = newVarName()
@@ -43,8 +43,34 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 		}
 	}
 
+	// Выгребаем функции переданные в переменных
+	for i := 0; i < len(src); i++ {
+		if src[i] == '$' {
+			openBracketPosition := getOffset(src[i:], "(", "", true, false)
+			if openBracketPosition == -1 {
+				break
+			}
+
+			if regexp.MustCompile(`(?is)^\$([a-z0-9_\[\]."']+)$`).MatchString(string(src[i : i + openBracketPosition])) {
+				closeBracketPosition := getOffset(src[i+openBracketPosition:], ")", "", true, true)
+				if closeBracketPosition == -1 {
+					break
+				}
+
+				var varName = newVarName()
+				var function = x.execFunction(src[i+openBracketPosition:i+openBracketPosition+closeBracketPosition+1], x.exec(src[i:i+openBracketPosition]))
+				functions = append(functions, func(vars *xVarCollection) []byte {
+					vars.setVar(varName, function(vars).toInterface())
+					return nil
+				})
+
+				src = append(src[:i], append([]rune(varName), src[i+openBracketPosition+closeBracketPosition+1:]...)...)
+			}
+		}
+	}
+
 	// Выгребаем все вычисления в скобках
-	for {
+	for i := 0; i < len(src); i++ {
 		closeBracketPosition := getOffset(src, ")", "", true, false)
 		if closeBracketPosition == -1 {
 			break
@@ -56,11 +82,6 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 			}
 		}
 
-		if openBracketPosition == closeBracketPosition {
-			return func(vars *xVarCollection) *xVar {
-				return xVarInit("", "parse error")
-			}
-		}
 		var varName = newVarName()
 		var f = x.exec(src[openBracketPosition+1 : closeBracketPosition])
 		functions = append(functions, func(vars *xVarCollection) []byte {
@@ -126,7 +147,7 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 		})
 	}
 
-	// $var++
+	// Инкремент
 	for rePlusPlus.MatchString(expr) {
 		expr = rePlusPlus.ReplaceAllStringFunc(expr, func(s string) string {
 			var varName = strings.TrimSpace(strings.Split(s, "++")[0])
@@ -134,7 +155,7 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 		})
 	}
 
-	// $var--
+	// Декремент
 	for reMinusMinus.MatchString(expr) {
 		expr = reMinusMinus.ReplaceAllStringFunc(expr, func(s string) string {
 			var varName = strings.TrimSpace(strings.Split(s, "--")[0])
@@ -285,7 +306,7 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 				if sVal == 0 {
 					vars.setVar(varName, "Error: divide by zero")
 				} else {
-					vars.setVar(varName, int64(firstValue.toInt() / sVal))
+					vars.setVar(varName, int64(firstValue.toInt()/sVal))
 				}
 				return nil
 			})

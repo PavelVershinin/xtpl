@@ -135,7 +135,8 @@
 struct {
     ID: {{$struct.ID}},
     Name: {{$struct.Name}},
-    Value: {{$struct["Value"]}}
+    Value: {{$struct["Value"]}},
+    Function: {{$struct.Function("Мама мыла раму", $struct.ID)}}
 }
 </pre>
         </li>

@@ -3,6 +3,7 @@ package xtpl
 import (
 	"bytes"
 	"io/ioutil"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -16,16 +17,23 @@ func TestNewCollection(t *testing.T) {
 			ID int
 			Name string
 			Value string
+			Function func(s string, i int) string
 		}{
 			{
 				1,
 				"my name",
 				"my value",
+				func(s string, i int) string {
+					return s + " " + strconv.Itoa(i) + " дней"
+				},
 			},
 			{
 				2,
 				"my name 2",
 				"my value 2",
+				func(s string, i int) string {
+					return s + " " + strconv.Itoa(i) + " дней"
+				},
 			},
 		},
 	}

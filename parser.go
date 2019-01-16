@@ -156,7 +156,7 @@ func (x *xtpl) userFunction(src []rune, withPrefixDog bool) (function func(vars 
 		}
 		if hasPrefix(src, name) && hasPrefix(src[len(name):], "(") {
 			if offset = getOffset(src, ")", "", true, true); offset > 0 {
-				return x.execUserFunction(src[len(name):offset+1], f, name), offset + 1
+				return x.execUserFunction(src[len(name):offset+1], f), offset + 1
 			}
 		}
 	}
