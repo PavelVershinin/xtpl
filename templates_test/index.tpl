@@ -39,25 +39,22 @@
     <ul>
     @foreach($numbers as $number1)
         @foreach($numbers as $number2)
+            @if($number2 > 8 && $number1 < 8 || $number2 < 1 && $number1 > 1)
+                <li>{{$number2}} > 8 && {{$number1}} < 8 || {{$number2}} < 1 && {{$number1}} > 1</li>
+            @endif
             @if ($number1 < $number2)
                 <li>{{$number1}} < {{$number2}}</li>
-            @endif
-            @if ($number1 <= $number2)
+            @elseif ($number1 <= $number2)
                 <li>{{$number1}} <= {{$number2}}</li>
-            @endif
-            @if ($number1 == $number2)
+            @elseif ($number1 == $number2)
                 <li>{{$number1}} == {{$number2}}</li>
-            @endif
-            @if ($number1 >= $number2)
+            @elseif ($number1 >= $number2)
                 <li>{{$number1}} >= {{$number2}}</li>
-            @endif
-            @if ($number1 > $number2)
+            @elseif ($number1 > $number2)
                 <li>{{$number1}} > {{$number2}}</li>
-            @endif
-            @if ($number1 != $number2)
+            @elseif ($number1 != $number2)
                 <li>{{$number1}} != {{$number2}}</li>
-            @endif
-            @if ($number1 <> $number2)
+            @elseif ($number1 <> $number2)
                 <li>{{$number1}} <> {{$number2}}</li>
             @endif
         @endforeach

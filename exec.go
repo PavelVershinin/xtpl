@@ -91,6 +91,8 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 	var reLess = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?<[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
 	var reMoreOrEqual = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?>=[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
 	var reLessOrEqual = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?<=[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
+	var reOr = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?\|\|[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
+	var reAnd = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?\&\&[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
 
 	var reMultiVars = regexp.MustCompile(`(?is)(\$[a-z0-9_]+\.[a-z0-9_\.]+)`)
 	var reArrayVars = regexp.MustCompile(`(?is)(\$[a-z0-9_]+\[[^\]]+\][a-z0-9_\]\[\$\.]*)`)
@@ -541,6 +543,60 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 					secondValue = xVarInit("", secondVar)
 				}
 				vars.setVar(varName, firstValue.toFloat() >= secondValue.toFloat())
+				return nil
+			})
+			return varName
+		})
+	}
+
+	// И
+	for reAnd.MatchString(expr) {
+		expr = reAnd.ReplaceAllStringFunc(expr, func(s string) string {
+			var varName = newVarName()
+			var arr = strings.Split(s, "&&")
+			var firstVar = strings.TrimSpace(arr[0])
+			var secondVar = strings.TrimSpace(arr[1])
+
+			functions = append(functions, func(vars *xVarCollection) []byte {
+				var firstValue, secondValue *xVar
+				if strings.HasPrefix(firstVar, "$") {
+					firstValue = vars.getVar(firstVar)
+				} else {
+					firstValue = xVarInit("", firstVar)
+				}
+				if strings.HasPrefix(secondVar, "$") {
+					secondValue = vars.getVar(secondVar)
+				} else {
+					secondValue = xVarInit("", secondVar)
+				}
+				vars.setVar(varName, firstValue.toBool() && secondValue.toBool())
+				return nil
+			})
+			return varName
+		})
+	}
+
+	// Или
+	for reOr.MatchString(expr) {
+		expr = reOr.ReplaceAllStringFunc(expr, func(s string) string {
+			var varName = newVarName()
+			var arr = strings.Split(s, "||")
+			var firstVar = strings.TrimSpace(arr[0])
+			var secondVar = strings.TrimSpace(arr[1])
+
+			functions = append(functions, func(vars *xVarCollection) []byte {
+				var firstValue, secondValue *xVar
+				if strings.HasPrefix(firstVar, "$") {
+					firstValue = vars.getVar(firstVar)
+				} else {
+					firstValue = xVarInit("", firstVar)
+				}
+				if strings.HasPrefix(secondVar, "$") {
+					secondValue = vars.getVar(secondVar)
+				} else {
+					secondValue = xVarInit("", secondVar)
+				}
+				vars.setVar(varName, firstValue.toBool() || secondValue.toBool())
 				return nil
 			})
 			return varName
