@@ -194,10 +194,18 @@ func xVarInit(name string, value interface{}) *xVar {
 		}
 	case reflect.Struct:
 		xv.vType = varTypeMap
-		for i := 0; i < valueOf.NumField(); i++ {
-			field := valueOf.Field(i)
-			if field.IsValid() && field.CanInterface() {
-				xv.Collection.setVar(valueOf.Type().Field(i).Name, field.Interface())
+		if valueOf.IsValid() {
+			for i := 0; i < valueOf.NumField(); i++ {
+				field := valueOf.Field(i)
+				if field.IsValid() && field.CanInterface() {
+					xv.Collection.setVar(valueOf.Type().Field(i).Name, field.Interface())
+				}
+			}
+			for i := 0; i < valueOf.NumMethod(); i++ {
+				method := valueOf.Method(i)
+				if method.IsValid() && method.CanInterface() {
+					xv.Collection.setVar(valueOf.Type().Method(i).Name, method.Interface())
+				}
 			}
 		}
 	case reflect.Ptr:
@@ -207,6 +215,12 @@ func xVarInit(name string, value interface{}) *xVar {
 				field := valueOf.Elem().Field(i)
 				if field.IsValid() && field.CanInterface() {
 					xv.Collection.setVar(valueOf.Elem().Type().Field(i).Name, field.Interface())
+				}
+			}
+			for i := 0; i < valueOf.Elem().NumMethod(); i++ {
+				method := valueOf.Elem().Method(i)
+				if method.IsValid() && method.CanInterface() {
+					xv.Collection.setVar(valueOf.Elem().Type().Method(i).Name, method.Interface())
 				}
 			}
 		}
