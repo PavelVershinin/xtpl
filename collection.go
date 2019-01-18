@@ -5,6 +5,7 @@ import (
 	"sync"
 )
 
+// XtplCollection
 type XtplCollection struct {
 	m             sync.Mutex
 	collection    map[string]*xtpl
@@ -15,6 +16,7 @@ type XtplCollection struct {
 	debug         bool
 }
 
+// NewCollection Создание новой коллекции шаблонов
 func NewCollection(viewsPath, viewExtension string) *XtplCollection {
 	var xc = &XtplCollection{}
 	xc.collection = make(map[string]*xtpl)
@@ -33,6 +35,7 @@ func NewCollection(viewsPath, viewExtension string) *XtplCollection {
 	return xc
 }
 
+// SetFunctions Загрузка пользовательских функций в шаблоны.
 func (xc *XtplCollection) SetFunctions(functions map[string]interface{}) {
 	xc.m.Lock()
 	xc.functions = functions
@@ -42,16 +45,20 @@ func (xc *XtplCollection) SetFunctions(functions map[string]interface{}) {
 	xc.m.Unlock()
 }
 
+// SetCycleLimit Установка ограничения, на максимальное количество итераций в циклах. По умолчанию 10000
 func (xc *XtplCollection) SetCycleLimit(limit uint) {
 	xc.m.Lock()
 	xc.cyclesLimit = limit
 	xc.m.Unlock()
 }
 
+// SetDebug Переключение в режим отладки.
+// В этом режиме, все изменения в шаблонах подхватываются налету, однако обработка шаблона занимет больше времени
 func (xc *XtplCollection) SetDebug(debug bool) {
 	xc.debug = debug
 }
 
+// View Обработка шаблона
 func (xc *XtplCollection) View(tplPath string, data map[string]interface{}, writer io.Writer) {
 	if xc.debug {
 		xtplInit(xc, tplPath).run(data, writer)

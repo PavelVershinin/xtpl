@@ -51,7 +51,7 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 				break
 			}
 
-			if regexp.MustCompile(`(?is)^\$([a-z0-9_\[\]."']+)$`).MatchString(string(src[i : i + openBracketPosition])) {
+			if regexp.MustCompile(`(?is)^\$([a-z0-9_\[\]."']+)$`).MatchString(string(src[i : i+openBracketPosition])) {
 				closeBracketPosition := getOffset(src[i+openBracketPosition:], ")", "", true, true)
 				if closeBracketPosition == -1 {
 					break

@@ -11,12 +11,12 @@ import (
 func TestNewCollection(t *testing.T) {
 	var testData = map[string]interface{}{
 		"page_title": "Тестовая страница",
-		"strings": []string{"Первый", "Второй", "Третий"},
-		"numbers": []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0},
+		"strings":    []string{"Первый", "Второй", "Третий"},
+		"numbers":    []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0},
 		"structs": []struct {
-			ID int
-			Name string
-			Value string
+			ID       int
+			Name     string
+			Value    string
 			Function func(s string, i int) string
 		}{
 			{

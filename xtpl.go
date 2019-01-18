@@ -38,6 +38,7 @@ func (x *xtpl) run(data map[string]interface{}, writer io.Writer) {
 	}
 	var vars = &xVarCollection{
 		source: data,
+		variables: map[string]*xVar{},
 	}
 	for _, f := range x.tree {
 		if _, err := writer.Write(f(vars)); err != nil {

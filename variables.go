@@ -16,7 +16,7 @@ func newVarName() (varName string) {
 
 type xVarCollection struct {
 	source    map[string]interface{}
-	variables []*xVar
+	variables map[string]*xVar
 	keyList   []string
 }
 
@@ -55,10 +55,8 @@ func (xvc *xVarCollection) getMultiVar(fields []string) *xVar {
 func (xvc *xVarCollection) getVar(varName string) *xVar {
 	if xvc != nil {
 		varName = strings.TrimLeft(varName, "$")
-		for i := 0; i < len(xvc.variables); i++ {
-			if xvc.variables[i].name == varName {
-				return xvc.variables[i]
-			}
+		if value, ok := xvc.variables[varName]; ok {
+			return value
 		}
 		if value, ok := xvc.source[varName]; ok {
 			return xvc.toVar(varName, value)
@@ -70,13 +68,7 @@ func (xvc *xVarCollection) getVar(varName string) *xVar {
 func (xvc *xVarCollection) setVar(varName string, value interface{}) {
 	varName = strings.TrimLeft(varName, "$")
 	xvc.source[varName] = value
-	var tmp []*xVar
-	for i := 0; i < len(xvc.variables); i++ {
-		if xvc.variables[i].name != varName {
-			tmp = append(tmp, xvc.variables[i])
-		}
-	}
-	xvc.variables = tmp
+	delete(xvc.variables, varName)
 
 	for i := 0; i < len(xvc.keyList); i++ {
 		if xvc.keyList[i] == varName {
@@ -88,7 +80,7 @@ func (xvc *xVarCollection) setVar(varName string, value interface{}) {
 
 func (xvc *xVarCollection) toVar(varName string, value interface{}) *xVar {
 	var xv = xVarInit(varName, value)
-	xvc.variables = append(xvc.variables, xv)
+	xvc.variables[varName] = xv
 	return xv
 }
 
@@ -107,7 +99,6 @@ const (
 )
 
 type xVar struct {
-	name           string
 	vType          varType
 	valueBool      bool
 	valueInt       int64
@@ -122,6 +113,7 @@ func xVarInit(name string, value interface{}) *xVar {
 	var xv = &xVar{}
 	xv.Collection = &xVarCollection{
 		source: map[string]interface{}{},
+		variables: map[string]*xVar{},
 	}
 	var valueOf = reflect.ValueOf(value)
 	var valueKind = valueOf.Kind()
@@ -231,7 +223,6 @@ func xVarInit(name string, value interface{}) *xVar {
 		xv.vType = varTypeInterface
 	}
 
-	xv.name = name
 	xv.valueInterface = value
 	return xv
 }
