@@ -325,13 +325,13 @@ func (xv *xVar) toString() string {
 	case varTypeString:
 		return xv.valueString
 	case varTypeSlice:
-		return fmt.Sprintf("%#v", xv.valueInterface)
+		return fmt.Sprintf("%s", xv.valueInterface)
 	case varTypeMap:
-		return fmt.Sprintf("%#v", xv.valueInterface)
+		return fmt.Sprintf("%s", xv.valueInterface)
 	case varTypeInterface:
-		return fmt.Sprintf("%#v", xv.valueInterface)
+		return fmt.Sprintf("%s", xv.valueInterface)
 	case varTypeFunc:
-		return fmt.Sprintf("%#v", xv.valueInterface)
+		return fmt.Sprintf("%s", xv.valueInterface)
 	}
 	return ""
 }

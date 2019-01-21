@@ -20,7 +20,7 @@ type XtplCollection struct {
 func NewCollection(viewsPath, viewExtension string) *XtplCollection {
 	var xc = &XtplCollection{}
 	xc.collection = make(map[string]*xtpl)
-	xc.functions = make(map[string]interface{})
+	xc.functions = xc.defaultFunctions()
 	xc.cyclesLimit = 10000
 	if viewsPath != "" {
 		xc.viewsPath = viewsPath
@@ -38,7 +38,10 @@ func NewCollection(viewsPath, viewExtension string) *XtplCollection {
 // SetFunctions Загрузка пользовательских функций в шаблоны.
 func (xc *XtplCollection) SetFunctions(functions map[string]interface{}) {
 	xc.m.Lock()
-	xc.functions = functions
+	xc.functions = xc.defaultFunctions()
+	for name, function := range functions {
+		xc.functions[name] = function
+	}
 	for fileName := range xc.collection {
 		xc.collection[fileName] = xtplInit(xc, fileName)
 	}
