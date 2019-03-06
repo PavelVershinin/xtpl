@@ -7,6 +7,7 @@ import (
 
 func (x *xtpl) execForeach(src []rune) func(vars *xVarCollection) []byte {
 	var sliceName, iteratorName, valueName string
+	var hasIterator = false
 	var bracketEnd = getOffset(src, ")", "", true, true)
 	var expr = src[1:bracketEnd]
 	var content = x.buildTree(src[bracketEnd+1:], true)
@@ -23,8 +24,8 @@ func (x *xtpl) execForeach(src []rune) func(vars *xVarCollection) []byte {
 	if toPosition := getOffset(expr[asPosition+4:], "=>", "", true, true); toPosition > 0 {
 		iteratorName = strings.TrimSpace(string(expr[asPosition+4 : asPosition+4+toPosition]))
 		valueName = strings.TrimSpace(string(expr[asPosition+4+toPosition+2 : bracketEnd-1]))
+		hasIterator = true
 	} else {
-		iteratorName = newVarName()
 		valueName = strings.TrimSpace(string(expr[asPosition+4 : bracketEnd-1]))
 	}
 
@@ -37,7 +38,9 @@ func (x *xtpl) execForeach(src []rune) func(vars *xVarCollection) []byte {
 		switch value.vType {
 		case varTypeMap:
 			for key, val := range value.toMap() {
-				vars.setVar(iteratorName, key)
+				if hasIterator {
+					vars.setVar(iteratorName, key)
+				}
 				vars.setVar(valueName, val.toInterface())
 				for _, f := range content {
 					buff.Write(f(vars))
@@ -49,7 +52,9 @@ func (x *xtpl) execForeach(src []rune) func(vars *xVarCollection) []byte {
 			}
 		default:
 			for i, val := range value.toSlice() {
-				vars.setVar(iteratorName, i)
+				if hasIterator {
+					vars.setVar(iteratorName, i)
+				}
 				vars.setVar(valueName, val.toInterface())
 				for _, f := range content {
 					buff.Write(f(vars))

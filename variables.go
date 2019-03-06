@@ -25,18 +25,7 @@ func (xvc *xVarCollection) len() int {
 }
 
 func (xvc *xVarCollection) keys() []string {
-	if len(xvc.keyList) > 0 {
-		return xvc.keyList
-	}
-	xvc.keyList = make([]string, len(xvc.source))
-	var keys = make([]string, xvc.len())
-	var i = 0
-	for key := range xvc.source {
-		xvc.keyList[i] = key
-		keys[i] = key
-		i++
-	}
-	return keys
+	return xvc.keyList
 }
 
 func (xvc *xVarCollection) getMultiVar(fields []string) *xVar {
@@ -67,15 +56,12 @@ func (xvc *xVarCollection) getVar(varName string) *xVar {
 
 func (xvc *xVarCollection) setVar(varName string, value interface{}) {
 	varName = strings.TrimLeft(varName, "$")
-	xvc.source[varName] = value
-	delete(xvc.variables, varName)
-
-	for i := 0; i < len(xvc.keyList); i++ {
-		if xvc.keyList[i] == varName {
-			return
-		}
+	if _, ok := xvc.source[varName]; ok {
+		delete(xvc.variables, varName)
+	} else {
+		xvc.keyList = append(xvc.keyList, varName)
 	}
-	xvc.keyList = append(xvc.keyList, varName)
+	xvc.source[varName] = value
 }
 
 func (xvc *xVarCollection) toVar(varName string, value interface{}) *xVar {
