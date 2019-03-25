@@ -7,7 +7,7 @@ import (
 
 // XtplCollection
 type XtplCollection struct {
-	m             sync.Mutex
+	m             sync.RWMutex
 	collection    map[string]*xtpl
 	functions     map[string]interface{}
 	viewsPath     string
@@ -67,13 +67,16 @@ func (xc *XtplCollection) View(tplPath string, data map[string]interface{}, writ
 		xtplInit(xc, tplPath).run(data, writer)
 		return
 	}
-start:
-	if view, ok := xc.collection[tplPath]; ok {
-		view.run(data, writer)
-	} else {
+
+	xc.m.RLock()
+	view, ok := xc.collection[tplPath]
+	xc.m.RUnlock()
+
+	if !ok {
 		xc.m.Lock()
-		xc.collection[tplPath] = xtplInit(xc, tplPath)
+		view = xtplInit(xc, tplPath)
+		xc.collection[tplPath] = view
 		xc.m.Unlock()
-		goto start
 	}
+	view.run(data, writer)
 }

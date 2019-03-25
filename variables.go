@@ -15,13 +15,14 @@ func newVarName() (varName string) {
 }
 
 type xVarCollection struct {
-	source    map[string]interface{}
-	variables map[string]*xVar
-	keyList   []string
+	source     map[string]interface{}
+	overSource map[string]interface{}
+	variables  map[string]*xVar
+	keyList    []string
 }
 
 func (xvc *xVarCollection) len() int {
-	return len(xvc.source)
+	return len(xvc.keyList)
 }
 
 func (xvc *xVarCollection) keys() []string {
@@ -47,6 +48,9 @@ func (xvc *xVarCollection) getVar(varName string) *xVar {
 		if value, ok := xvc.variables[varName]; ok {
 			return value
 		}
+		if value, ok := xvc.overSource[varName]; ok {
+			return xvc.toVar(varName, value)
+		}
 		if value, ok := xvc.source[varName]; ok {
 			return xvc.toVar(varName, value)
 		}
@@ -56,12 +60,14 @@ func (xvc *xVarCollection) getVar(varName string) *xVar {
 
 func (xvc *xVarCollection) setVar(varName string, value interface{}) {
 	varName = strings.TrimLeft(varName, "$")
-	if _, ok := xvc.source[varName]; ok {
+	if _, ok := xvc.overSource[varName]; ok {
+		delete(xvc.variables, varName)
+	} else if _, ok := xvc.source[varName]; ok {
 		delete(xvc.variables, varName)
 	} else {
 		xvc.keyList = append(xvc.keyList, varName)
 	}
-	xvc.source[varName] = value
+	xvc.overSource[varName] = value
 }
 
 func (xvc *xVarCollection) toVar(varName string, value interface{}) *xVar {
@@ -98,8 +104,9 @@ type xVar struct {
 func xVarInit(name string, value interface{}) *xVar {
 	var xv = &xVar{}
 	xv.Collection = &xVarCollection{
-		source: map[string]interface{}{},
-		variables: map[string]*xVar{},
+		source:     map[string]interface{}{},
+		overSource: map[string]interface{}{},
+		variables:  map[string]*xVar{},
 	}
 	var valueOf = reflect.ValueOf(value)
 	var valueKind = valueOf.Kind()
