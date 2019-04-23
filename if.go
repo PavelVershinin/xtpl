@@ -2,6 +2,7 @@ package xtpl
 
 import (
 	"bytes"
+	"unicode"
 )
 
 type ifStruct struct {
@@ -14,8 +15,12 @@ func (x *xtpl) execIf(src []rune) func(vars *xVarCollection) []byte {
 
 	for len(src) > 0 {
 		var variant ifStruct
-		bracketBegin := getOffset(src, "(", "", true, true)
-		bracketEnd := getOffset(src, ")", "", true, true)
+		bracketBegin := -1
+		bracketEnd := -1
+		if !unicode.IsSpace(src[0]) {
+			bracketBegin = getOffset(src, "(", "", true, true)
+			bracketEnd = getOffset(src, ")", "", true, true)
+		}
 		if bracketBegin > -1 && bracketEnd > bracketBegin {
 			var equal = x.exec(src[bracketBegin : bracketEnd+1])
 			variant.equal = func(vars *xVarCollection) bool {
