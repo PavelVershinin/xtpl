@@ -9,19 +9,17 @@ import (
 type treeNode func(vars *xVarCollection) []byte
 type xtpl struct {
 	tree       []treeNode
-	collection *XtplCollection
 }
 
-func xtplInit(collection *XtplCollection, tplPath string) *xtpl {
+func xtplInit(tplPath string) *xtpl {
 	var xTpl = &xtpl{}
-	xTpl.collection = collection
 	src := xTpl.tplSource(tplPath)
 	xTpl.parse(src)
 	return xTpl
 }
 
 func (x *xtpl) tplSource(tplPath string) string {
-	b, err := ioutil.ReadFile(x.collection.viewsPath + "/" + tplPath + "." + x.collection.viewExtension)
+	b, err := ioutil.ReadFile(viewsPath + "/" + tplPath + "." + viewExtension)
 	if err == nil {
 		return string(b)
 	}

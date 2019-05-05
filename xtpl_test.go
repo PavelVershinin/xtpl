@@ -3866,10 +3866,11 @@ struct {
 </html>`
 
 func TestXtplCollection_View(t *testing.T) {
-	var collection = NewCollection("./templates_test", "tpl")
-	collection.SetCycleLimit(100)
-	collection.SetDebug(false)
-	collection.SetFunctions(map[string]interface{}{
+	ViewsPath("./templates_test")
+	//ViewExtension("tpl")
+	CycleLimit(100)
+	Debug(false)
+	Functions(map[string]interface{}{
 		"date": func(timestamp int64, layout string) string {
 			t := time.Unix(timestamp, 0)
 			return t.UTC().Format(layout)
@@ -3882,7 +3883,7 @@ func TestXtplCollection_View(t *testing.T) {
 	for  i := 0; i < 100; i++ {
 		go func() {
 			var buff = &bytes.Buffer{}
-			collection.View("index", testData1, buff)
+			View("index", testData1, buff)
 
 			if result1 != buff.String() {
 				t.Errorf("Возможно, что-то пошло не так, результат обработки шаблона не совпадает с образцом")
@@ -3891,7 +3892,7 @@ func TestXtplCollection_View(t *testing.T) {
 		}()
 		go func() {
 			var buff = &bytes.Buffer{}
-			collection.View("index", testData2, buff)
+			View("index", testData2, buff)
 
 			if result2 != buff.String() {
 				t.Errorf("Возможно, что-то пошло не так, результат обработки шаблона не совпадает с образцом")
@@ -3904,10 +3905,11 @@ func TestXtplCollection_View(t *testing.T) {
 }
 
 func BenchmarkView(b *testing.B) {
-	var collection = NewCollection("./templates_test", "tpl")
-	collection.SetCycleLimit(100)
-	collection.SetDebug(false)
-	collection.SetFunctions(map[string]interface{}{
+	ViewsPath("./templates_test")
+	ViewExtension("tpl")
+	CycleLimit(100)
+	Debug(false)
+	Functions(map[string]interface{}{
 		"date": func(timestamp int64, layout string) string {
 			t := time.Unix(timestamp, 0)
 			return t.UTC().Format(layout)
@@ -3916,6 +3918,6 @@ func BenchmarkView(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		var buff = &bytes.Buffer{}
-		collection.View("index", testData1, buff)
+		View("index", testData1, buff)
 	}
 }

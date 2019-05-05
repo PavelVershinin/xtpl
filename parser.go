@@ -150,7 +150,7 @@ func (x *xtpl) node(src []rune, withPrefixDog bool) (function treeNode, offset i
 }
 
 func (x *xtpl) userFunction(src []rune, withPrefixDog bool) (function func(vars *xVarCollection) *xVar, offset int) {
-	for name, f := range x.collection.functions {
+	for name, f := range xtplFunctions {
 		if withPrefixDog {
 			name = "@" + name
 		}

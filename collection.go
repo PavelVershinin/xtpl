@@ -5,78 +5,83 @@ import (
 	"sync"
 )
 
-// XtplCollection
-type XtplCollection struct {
+var (
 	m             sync.RWMutex
 	collection    map[string]*xtpl
-	functions     map[string]interface{}
 	viewsPath     string
 	viewExtension string
 	cyclesLimit   uint
 	debug         bool
+)
+
+func init()  {
+	collection = make(map[string]*xtpl)
+	cyclesLimit = 10000
+	viewsPath = "."
+	viewExtension = "tpl"
 }
 
-// NewCollection Создание новой коллекции шаблонов
-func NewCollection(viewsPath, viewExtension string) *XtplCollection {
-	var xc = &XtplCollection{}
-	xc.collection = make(map[string]*xtpl)
-	xc.functions = xc.defaultFunctions()
-	xc.cyclesLimit = 10000
-	if viewsPath != "" {
-		xc.viewsPath = viewsPath
-	} else {
-		xc.viewsPath = "."
+// ViewsPath Путь к корневой директории с шаблонами
+func ViewsPath(path string)  {
+	m.Lock()
+	viewsPath = path
+	for fileName := range collection {
+		collection[fileName] = xtplInit(fileName)
 	}
-	if viewExtension != "" {
-		xc.viewExtension = viewExtension
-	} else {
-		xc.viewExtension = "tpl"
-	}
-	return xc
+	m.Unlock()
 }
 
-// SetFunctions Загрузка пользовательских функций в шаблоны.
-func (xc *XtplCollection) SetFunctions(functions map[string]interface{}) {
-	xc.m.Lock()
-	xc.functions = xc.defaultFunctions()
+// ViewExtension Расширение файлов шаблона
+func ViewExtension(extension string)  {
+	m.Lock()
+	viewExtension = extension
+	for fileName := range collection {
+		collection[fileName] = xtplInit(fileName)
+	}
+	m.Unlock()
+}
+
+// Functions Загрузка пользовательских функций в шаблонизатор.
+func Functions(functions map[string]interface{}) {
+	m.Lock()
 	for name, function := range functions {
-		xc.functions[name] = function
+		xtplFunctions[name] = function
 	}
-	for fileName := range xc.collection {
-		xc.collection[fileName] = xtplInit(xc, fileName)
+	for fileName := range collection {
+		collection[fileName] = xtplInit(fileName)
 	}
-	xc.m.Unlock()
+	m.Unlock()
 }
 
-// SetCycleLimit Установка ограничения, на максимальное количество итераций в циклах. По умолчанию 10000
-func (xc *XtplCollection) SetCycleLimit(limit uint) {
-	xc.m.Lock()
-	xc.cyclesLimit = limit
-	xc.m.Unlock()
+// CycleLimit Установка ограничения, на максимальное количество итераций в циклах. По умолчанию 10000
+func CycleLimit(limit uint) {
+	m.Lock()
+	cyclesLimit = limit
+	m.Unlock()
 }
 
-// SetDebug Переключение в режим отладки.
+// Debug Переключение в режим отладки.
 // В этом режиме, все изменения в шаблонах подхватываются налету, однако обработка шаблона занимет больше времени
-func (xc *XtplCollection) SetDebug(debug bool) {
-	xc.debug = debug
+func Debug(on bool) {
+	debug = on
 }
 
 // View Обработка шаблона
-func (xc *XtplCollection) View(tplPath string, data map[string]interface{}, writer io.Writer) {
-	if xc.debug {
-		xtplInit(xc, tplPath).run(data, writer)
+func View(tplPath string, data map[string]interface{}, writer io.Writer) {
+	if debug {
+		xtplInit(tplPath).run(data, writer)
 		return
 	}
 
-	xc.m.RLock()
-	view, ok := xc.collection[tplPath]
-	xc.m.RUnlock()
+	m.RLock()
+	view, ok := collection[tplPath]
+	m.RUnlock()
 
 	if !ok {
-		xc.m.Lock()
-		view = xtplInit(xc, tplPath)
-		xc.collection[tplPath] = view
-		xc.m.Unlock()
+		m.Lock()
+		view = xtplInit(tplPath)
+		collection[tplPath] = view
+		m.Unlock()
 	}
 	view.run(data, writer)
 }

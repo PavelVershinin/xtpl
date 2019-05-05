@@ -44,7 +44,7 @@ func (x *xtpl) execFor(src []rune) func(vars *xVarCollection) []byte {
 				buff.Write(f(vars))
 			}
 			pos++
-			if pos >= x.collection.cyclesLimit {
+			if pos >= cyclesLimit {
 				break
 			}
 		}
