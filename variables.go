@@ -159,7 +159,10 @@ func xVarInit(name string, value interface{}) *xVar {
 		}
 	case reflect.String:
 		s := fmt.Sprintf("%s", value)
-		if n, err := strconv.ParseFloat(s, 64); err == nil {
+		if strings.HasPrefix(s, "0") && s != "0" {
+			xv.vType = varTypeString
+			xv.valueString = s
+		} else if n, err := strconv.ParseFloat(s, 64); err == nil {
 			xv.vType = varTypeFloat
 			xv.valueFloat = n
 		} else {

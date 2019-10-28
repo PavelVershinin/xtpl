@@ -2,6 +2,7 @@ package xtpl
 
 import (
 	"bytes"
+	"github.com/PavelVershinin/GoWeb/web"
 	"strconv"
 	"sync"
 	"testing"
@@ -10,7 +11,7 @@ import (
 
 var testData1 = map[string]interface{}{
 	"page_title": "Тестовая страница",
-	"strings":    []string{"Первый", "Второй", "Третий"},
+	"strings":    []string{"Первый", "Второй", "Третий", "048465450"},
 	"numbers":    []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0},
 	"structs": []struct {
 		ID       int
@@ -39,7 +40,7 @@ var testData1 = map[string]interface{}{
 
 var testData2 = map[string]interface{}{
 	"page_title": "Тестовая страница 2",
-	"strings":    []string{"Первый 2", "Второй 2", "Третий 2"},
+	"strings":    []string{"Первый 2", "Второй 2", "Третий 2", "07869786"},
 	"numbers":    []int{0, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0},
 	"structs": []struct {
 		ID       int
@@ -109,7 +110,7 @@ var result1 = `<!DOCTYPE html>
     
         <li>
             
-                В переменной $strings, под индексом 3 нет значения
+                В переменной $strings, под индексом 3 содержится значение 048465450
             
         </li>
     
@@ -159,6 +160,8 @@ var result1 = `<!DOCTYPE html>
         <li>$strings[1] == Второй</li>
     
         <li>$strings[2] == Третий</li>
+    
+        <li>$strings[3] == 048465450</li>
     
     </ul>
 
@@ -1739,6 +1742,8 @@ var result1 = `<!DOCTYPE html>
         
             <li>Первый Третий</li>
         
+            <li>Первый 048465450</li>
+        
     
         
             <li>Второй Первый</li>
@@ -1747,6 +1752,8 @@ var result1 = `<!DOCTYPE html>
         
             <li>Второй Третий</li>
         
+            <li>Второй 048465450</li>
+        
     
         
             <li>Третий Первый</li>
@@ -1754,6 +1761,18 @@ var result1 = `<!DOCTYPE html>
             <li>Третий Второй</li>
         
             <li>Третий Третий</li>
+        
+            <li>Третий 048465450</li>
+        
+    
+        
+            <li>048465450 Первый</li>
+        
+            <li>048465450 Второй</li>
+        
+            <li>048465450 Третий</li>
+        
+            <li>048465450 048465450</li>
         
     
     </ul>
@@ -1861,7 +1880,7 @@ var result2 = `<!DOCTYPE html>
     
         <li>
             
-                В переменной $strings, под индексом 3 нет значения
+                В переменной $strings, под индексом 3 содержится значение 07869786
             
         </li>
     
@@ -1911,6 +1930,8 @@ var result2 = `<!DOCTYPE html>
         <li>$strings[1] == Второй 2</li>
     
         <li>$strings[2] == Третий 2</li>
+    
+        <li>$strings[3] == 07869786</li>
     
     </ul>
 
@@ -3786,6 +3807,8 @@ var result2 = `<!DOCTYPE html>
         
             <li>Первый 2 Третий 2</li>
         
+            <li>Первый 2 07869786</li>
+        
     
         
             <li>Второй 2 Первый 2</li>
@@ -3794,6 +3817,8 @@ var result2 = `<!DOCTYPE html>
         
             <li>Второй 2 Третий 2</li>
         
+            <li>Второй 2 07869786</li>
+        
     
         
             <li>Третий 2 Первый 2</li>
@@ -3801,6 +3826,18 @@ var result2 = `<!DOCTYPE html>
             <li>Третий 2 Второй 2</li>
         
             <li>Третий 2 Третий 2</li>
+        
+            <li>Третий 2 07869786</li>
+        
+    
+        
+            <li>07869786 Первый 2</li>
+        
+            <li>07869786 Второй 2</li>
+        
+            <li>07869786 Третий 2</li>
+        
+            <li>07869786 07869786</li>
         
     
     </ul>
@@ -3885,6 +3922,7 @@ func TestXtplCollection_View(t *testing.T) {
 			var buff = &bytes.Buffer{}
 			View("index", testData1, buff)
 
+			web.FilePutContents("/home/master/1.txt", buff.String())
 			if result1 != buff.String() {
 				t.Errorf("Возможно, что-то пошло не так, результат обработки шаблона не совпадает с образцом")
 			}
@@ -3894,6 +3932,7 @@ func TestXtplCollection_View(t *testing.T) {
 			var buff = &bytes.Buffer{}
 			View("index", testData2, buff)
 
+			web.FilePutContents("/home/master/2.txt", buff.String())
 			if result2 != buff.String() {
 				t.Errorf("Возможно, что-то пошло не так, результат обработки шаблона не совпадает с образцом")
 			}
