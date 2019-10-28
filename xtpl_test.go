@@ -2,7 +2,6 @@ package xtpl
 
 import (
 	"bytes"
-	"github.com/PavelVershinin/GoWeb/web"
 	"strconv"
 	"sync"
 	"testing"
@@ -3922,7 +3921,6 @@ func TestXtplCollection_View(t *testing.T) {
 			var buff = &bytes.Buffer{}
 			View("index", testData1, buff)
 
-			web.FilePutContents("/home/master/1.txt", buff.String())
 			if result1 != buff.String() {
 				t.Errorf("Возможно, что-то пошло не так, результат обработки шаблона не совпадает с образцом")
 			}
@@ -3932,7 +3930,6 @@ func TestXtplCollection_View(t *testing.T) {
 			var buff = &bytes.Buffer{}
 			View("index", testData2, buff)
 
-			web.FilePutContents("/home/master/2.txt", buff.String())
 			if result2 != buff.String() {
 				t.Errorf("Возможно, что-то пошло не так, результат обработки шаблона не совпадает с образцом")
 			}
