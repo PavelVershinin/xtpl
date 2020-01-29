@@ -16,4 +16,12 @@ var xtplFunctions =  map[string]interface{}{
 		}
 		return buff.String()
 	},
+	"in_array": func(arr []*xVar, needle *xVar) bool {
+		for _, v := range arr {
+			if v.toString() == needle.toString() {
+				return true
+			}
+		}
+		return false
+	},
 }
