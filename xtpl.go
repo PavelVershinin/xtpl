@@ -18,6 +18,12 @@ func xtplInit(tplPath string) *xtpl {
 	return xTpl
 }
 
+func xtplInitFromSource(src string) *xtpl {
+	var xTpl = &xtpl{}
+	xTpl.parse(src)
+	return xTpl
+}
+
 func (x *xtpl) tplSource(tplPath string) string {
 	b, err := ioutil.ReadFile(viewsPath + "/" + tplPath + "." + viewExtension)
 	if err == nil {

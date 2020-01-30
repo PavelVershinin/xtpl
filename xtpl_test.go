@@ -2,6 +2,7 @@ package xtpl
 
 import (
 	"bytes"
+	"io/ioutil"
 	"strconv"
 	"sync"
 	"testing"
@@ -3922,7 +3923,7 @@ func TestXtplCollection_View(t *testing.T) {
 			View("index", testData1, buff)
 
 			if result1 != buff.String() {
-				t.Errorf("Возможно, что-то пошло не так, результат обработки шаблона не совпадает с образцом")
+				t.Error("Возможно, что-то пошло не так, результат обработки шаблона не совпадает с образцом")
 			}
 			wg.Done()
 		}()
@@ -3931,7 +3932,48 @@ func TestXtplCollection_View(t *testing.T) {
 			View("index", testData2, buff)
 
 			if result2 != buff.String() {
-				t.Errorf("Возможно, что-то пошло не так, результат обработки шаблона не совпадает с образцом")
+				t.Error("Возможно, что-то пошло не так, результат обработки шаблона не совпадает с образцом")
+			}
+			wg.Done()
+		}()
+	}
+
+	wg.Wait()
+}
+
+func TestXtplCollection_ParseString(t *testing.T) {
+	ViewsPath("./templates_test")
+	//ViewExtension("tpl")
+	CycleLimit(100)
+	Debug(false)
+	Functions(map[string]interface{}{
+		"date": func(timestamp int64, layout string) string {
+			t := time.Unix(timestamp, 0)
+			return t.UTC().Format(layout)
+		},
+	})
+
+	var wg = sync.WaitGroup{}
+	wg.Add(200)
+
+	var source, err = ioutil.ReadFile("./templates_test/index.tpl")
+	if err != nil {
+		t.Error("Не удалось прочитать файл шаблона")
+		return
+	}
+	
+	for  i := 0; i < 100; i++ {
+		go func() {
+			var res = ParseString(string(source), testData1)
+			if result1 != res {
+				t.Error("Возможно, что-то пошло не так, результат обработки шаблона не совпадает с образцом")
+			}
+			wg.Done()
+		}()
+		go func() {
+			var res = ParseString(string(source), testData2)
+			if result2 != res {
+				t.Error("Возможно, что-то пошло не так, результат обработки шаблона не совпадает с образцом")
 			}
 			wg.Done()
 		}()

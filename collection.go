@@ -1,6 +1,9 @@
 package xtpl
 
 import (
+	"bytes"
+	"crypto/md5"
+	"fmt"
 	"io"
 	"sync"
 )
@@ -84,4 +87,32 @@ func View(tplPath string, data map[string]interface{}, writer io.Writer) {
 		m.Unlock()
 	}
 	view.run(data, writer)
+}
+
+// ParseString Обработает строку как шаблон, вернёт строку с результатом обработки
+func ParseString(source string, data map[string]interface{}) string {
+	var buff = &bytes.Buffer{}
+	if debug {
+		xtplInitFromSource(source).run(data, buff)
+		return buff.String()
+	}
+
+	var h = md5.New()
+	h.Write([]byte(source))
+	var tplKey = "xtpl_" + fmt.Sprintf("%x", h.Sum(nil))
+
+	m.RLock()
+	view, ok := collection[tplKey]
+	m.RUnlock()
+
+	if !ok {
+		m.Lock()
+		view = xtplInitFromSource(source)
+		collection[tplKey] = view
+		m.Unlock()
+	}
+
+	view.run(data, buff)
+
+	return buff.String()
 }
