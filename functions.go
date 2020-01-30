@@ -2,7 +2,7 @@ package xtpl
 
 import "bytes"
 
-var xtplFunctions =  map[string]interface{}{
+var xtplFunctions = map[string]interface{}{
 	"len": func(slice []*xVar) int {
 		return len(slice)
 	},
@@ -10,7 +10,7 @@ var xtplFunctions =  map[string]interface{}{
 		var buff bytes.Buffer
 		for i, val := range a {
 			buff.WriteString(val.toString())
-			if i < len(a) - 1 {
+			if i < len(a)-1 {
 				buff.WriteString(sep)
 			}
 		}

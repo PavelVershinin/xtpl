@@ -17,7 +17,7 @@ var (
 	debug         bool
 )
 
-func init()  {
+func init() {
 	collection = make(map[string]*xtpl)
 	cyclesLimit = 10000
 	viewsPath = "."
@@ -25,7 +25,7 @@ func init()  {
 }
 
 // ViewsPath Путь к корневой директории с шаблонами
-func ViewsPath(path string)  {
+func ViewsPath(path string) {
 	m.Lock()
 	viewsPath = path
 	for fileName := range collection {
@@ -35,7 +35,7 @@ func ViewsPath(path string)  {
 }
 
 // ViewExtension Расширение файлов шаблона
-func ViewExtension(extension string)  {
+func ViewExtension(extension string) {
 	m.Lock()
 	viewExtension = extension
 	for fileName := range collection {

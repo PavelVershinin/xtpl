@@ -3917,7 +3917,7 @@ func TestXtplCollection_View(t *testing.T) {
 	var wg = sync.WaitGroup{}
 	wg.Add(200)
 
-	for  i := 0; i < 100; i++ {
+	for i := 0; i < 100; i++ {
 		go func() {
 			var buff = &bytes.Buffer{}
 			View("index", testData1, buff)
@@ -3961,8 +3961,8 @@ func TestXtplCollection_ParseString(t *testing.T) {
 		t.Error("Не удалось прочитать файл шаблона")
 		return
 	}
-	
-	for  i := 0; i < 100; i++ {
+
+	for i := 0; i < 100; i++ {
 		go func() {
 			var res = ParseString(string(source), testData1)
 			if result1 != res {

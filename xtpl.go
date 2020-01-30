@@ -8,7 +8,7 @@ import (
 
 type treeNode func(vars *xVarCollection) []byte
 type xtpl struct {
-	tree       []treeNode
+	tree []treeNode
 }
 
 func xtplInit(tplPath string) *xtpl {
