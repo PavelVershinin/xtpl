@@ -7,11 +7,8 @@ import (
 	"strings"
 )
 
-var varNameIter = 0
-
 func newVarName() (varName string) {
-	varNameIter++
-	return "$_XR_" + strconv.Itoa(varNameIter)
+	return "$_XR_" + strconv.FormatInt(serialID.Next(), 10)
 }
 
 type xVarCollection struct {
@@ -79,7 +76,7 @@ func (xvc *xVarCollection) toVar(varName string, value interface{}) *xVar {
 type varType uint8
 
 const (
-	varTypeInvalid varType = iota
+	_ varType = iota
 	varTypeBool
 	varTypeInt
 	varTypeFloat

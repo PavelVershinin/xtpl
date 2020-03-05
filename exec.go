@@ -13,8 +13,8 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 
 	// Все строки в кавычках переводим в переменные
 	for i := 0; i < len(src); i++ {
-		var openQuote = -1
-		var closeQuote = -1
+		openQuote := -1
+		closeQuote := -1
 		if openQuote = getOffset(src[i:], `"`, "", true, true); openQuote > -1 {
 			closeQuote = getOffset(src[i+openQuote+1:], `"`, "", true, true)
 		} else if openQuote = getOffset(src[i:], `'`, "", true, true); openQuote > -1 {
@@ -189,6 +189,8 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 			case strings.Contains(s, "^="):
 				arr = strings.Split(s, "^=")
 				operator = "^"
+			default:
+				return s
 			}
 			firstVar = strings.TrimSpace(arr[0])
 			secondVar = strings.TrimSpace(arr[1])

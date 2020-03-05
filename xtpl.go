@@ -3,16 +3,18 @@ package xtpl
 import (
 	"io"
 	"io/ioutil"
-	"log"
+	"os"
 )
 
 type treeNode func(vars *xVarCollection) []byte
 type xtpl struct {
-	tree []treeNode
+	tree   []treeNode
+	errors *errors
 }
 
 func xtplInit(tplPath string) *xtpl {
 	var xTpl = &xtpl{}
+	xTpl.errors = &errors{}
 	src := xTpl.tplSource(tplPath)
 	xTpl.parse(src)
 	return xTpl
@@ -20,16 +22,17 @@ func xtplInit(tplPath string) *xtpl {
 
 func xtplInitFromSource(src string) *xtpl {
 	var xTpl = &xtpl{}
+	xTpl.errors = &errors{}
 	xTpl.parse(src)
 	return xTpl
 }
 
 func (x *xtpl) tplSource(tplPath string) string {
-	b, err := ioutil.ReadFile(viewsPath + "/" + tplPath + "." + viewExtension)
-	if err == nil {
-		return string(b)
+	b, err := ioutil.ReadFile(viewsPath + string(os.PathSeparator) + tplPath + "." + viewExtension)
+	if err != nil {
+		return x.errors.Add(err)
 	}
-	return err.Error()
+	return string(b)
 }
 
 func (x *xtpl) parse(src string) {
@@ -47,7 +50,7 @@ func (x *xtpl) run(data map[string]interface{}, writer io.Writer) {
 	}
 	for _, f := range x.tree {
 		if _, err := writer.Write(f(vars)); err != nil {
-			log.Println(err.Error())
+			x.errors.Add(err)
 			return
 		}
 	}

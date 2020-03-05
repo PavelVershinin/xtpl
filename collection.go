@@ -1,7 +1,6 @@
 package xtpl
 
 import (
-	"bytes"
 	"crypto/md5"
 	"fmt"
 	"io"
@@ -15,6 +14,7 @@ var (
 	viewExtension string
 	cyclesLimit   uint
 	debug         bool
+	serialID      *serial
 )
 
 func init() {
@@ -22,6 +22,7 @@ func init() {
 	cyclesLimit = 10000
 	viewsPath = "."
 	viewExtension = "tpl"
+	serialID = &serial{}
 }
 
 // ViewsPath Путь к корневой директории с шаблонами
@@ -70,49 +71,59 @@ func Debug(on bool) {
 }
 
 // View Обработка шаблона
-func View(tplPath string, data map[string]interface{}, writer io.Writer) {
+func View(tplPath string, data map[string]interface{}, writer io.Writer) error {
+	var xTpl *xtpl
+
 	if debug {
-		xtplInit(tplPath).run(data, writer)
-		return
+		xTpl = xtplInit(tplPath)
+		xTpl.run(data, writer)
+	} else {
+		var ok bool
+		m.RLock()
+		xTpl, ok = collection[tplPath]
+		m.RUnlock()
+
+		if !ok {
+			m.Lock()
+			xTpl = xtplInit(tplPath)
+			collection[tplPath] = xTpl
+			m.Unlock()
+		}
+
+		xTpl.run(data, writer)
 	}
 
-	m.RLock()
-	view, ok := collection[tplPath]
-	m.RUnlock()
-
-	if !ok {
-		m.Lock()
-		view = xtplInit(tplPath)
-		collection[tplPath] = view
-		m.Unlock()
-	}
-	view.run(data, writer)
+	return xTpl.errors.Error()
 }
 
 // ParseString Обработает строку как шаблон, вернёт строку с результатом обработки
-func ParseString(source string, data map[string]interface{}) string {
-	var buff = &bytes.Buffer{}
+func ParseString(source string, data map[string]interface{}, writer io.Writer) error {
+	var xTpl *xtpl
+
 	if debug {
-		xtplInitFromSource(source).run(data, buff)
-		return buff.String()
+		xTpl = xtplInitFromSource(source)
+		xTpl.run(data, writer)
+	} else {
+		var h = md5.New()
+		if _, err := h.Write([]byte(source)); err != nil {
+			return err
+		}
+		var tplKey = "xtpl_" + fmt.Sprintf("%x", h.Sum(nil))
+		var ok bool
+
+		m.RLock()
+		xTpl, ok = collection[tplKey]
+		m.RUnlock()
+
+		if !ok {
+			m.Lock()
+			xTpl = xtplInitFromSource(source)
+			collection[tplKey] = xTpl
+			m.Unlock()
+		}
+
+		xTpl.run(data, writer)
 	}
 
-	var h = md5.New()
-	h.Write([]byte(source))
-	var tplKey = "xtpl_" + fmt.Sprintf("%x", h.Sum(nil))
-
-	m.RLock()
-	view, ok := collection[tplKey]
-	m.RUnlock()
-
-	if !ok {
-		m.Lock()
-		view = xtplInitFromSource(source)
-		collection[tplKey] = view
-		m.Unlock()
-	}
-
-	view.run(data, buff)
-
-	return buff.String()
+	return xTpl.errors.Error()
 }

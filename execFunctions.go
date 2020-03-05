@@ -32,7 +32,7 @@ func (x *xtpl) execFunction(src []rune, function func(vars *xVarCollection) *xVa
 		call, argumentTypes := function(vars).toFunc()
 
 		var argLen = len(srcArguments)
-		var args = make([]reflect.Value, argLen, argLen)
+		var args = make([]reflect.Value, argLen)
 		for i := 0; i < argLen; i++ {
 			v := srcArguments[i](vars)
 			switch argumentTypes[i] {
@@ -132,7 +132,7 @@ func (x *xtpl) execUserFunction(src []rune, function interface{}) func(vars *xVa
 		}()
 
 		var argLen = len(arguments)
-		var args = make([]reflect.Value, argLen, argLen)
+		var args = make([]reflect.Value, argLen)
 		for i := 0; i < argLen; i++ {
 			v := arguments[i](vars)
 			switch argumentTypes[i] {

@@ -1,4 +1,4 @@
-package xtpl
+package xtpl_test
 
 import (
 	"bytes"
@@ -7,6 +7,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/PavelVershinin/xtpl"
 )
 
 var testData1 = map[string]interface{}{
@@ -3903,11 +3905,11 @@ struct {
 </html>`
 
 func TestXtplCollection_View(t *testing.T) {
-	ViewsPath("./templates_test")
-	//ViewExtension("tpl")
-	CycleLimit(100)
-	Debug(false)
-	Functions(map[string]interface{}{
+	xtpl.ViewsPath("./templates_test")
+	//xtpl.ViewExtension("tpl")
+	xtpl.CycleLimit(100)
+	xtpl.Debug(false)
+	xtpl.Functions(map[string]interface{}{
 		"date": func(timestamp int64, layout string) string {
 			t := time.Unix(timestamp, 0)
 			return t.UTC().Format(layout)
@@ -3920,18 +3922,18 @@ func TestXtplCollection_View(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		go func() {
 			var buff = &bytes.Buffer{}
-			View("index", testData1, buff)
-
-			if result1 != buff.String() {
+			if err := xtpl.View("index", testData1, buff); err != nil {
+				t.Error(err)
+			} else if result1 != buff.String() {
 				t.Error("Возможно, что-то пошло не так, результат обработки шаблона не совпадает с образцом")
 			}
 			wg.Done()
 		}()
 		go func() {
 			var buff = &bytes.Buffer{}
-			View("index", testData2, buff)
-
-			if result2 != buff.String() {
+			if err := xtpl.View("index", testData2, buff); err != nil {
+				t.Error(err)
+			} else if result2 != buff.String() {
 				t.Error("Возможно, что-то пошло не так, результат обработки шаблона не совпадает с образцом")
 			}
 			wg.Done()
@@ -3942,11 +3944,11 @@ func TestXtplCollection_View(t *testing.T) {
 }
 
 func TestXtplCollection_ParseString(t *testing.T) {
-	ViewsPath("./templates_test")
-	//ViewExtension("tpl")
-	CycleLimit(100)
-	Debug(false)
-	Functions(map[string]interface{}{
+	xtpl.ViewsPath("./templates_test")
+	//xtpl.ViewExtension("tpl")
+	xtpl.CycleLimit(100)
+	xtpl.Debug(false)
+	xtpl.Functions(map[string]interface{}{
 		"date": func(timestamp int64, layout string) string {
 			t := time.Unix(timestamp, 0)
 			return t.UTC().Format(layout)
@@ -3964,15 +3966,19 @@ func TestXtplCollection_ParseString(t *testing.T) {
 
 	for i := 0; i < 100; i++ {
 		go func() {
-			var res = ParseString(string(source), testData1)
-			if result1 != res {
+			var buff = &bytes.Buffer{}
+			if err := xtpl.ParseString(string(source), testData1, buff); err != nil {
+				t.Error(err)
+			} else if result1 != buff.String() {
 				t.Error("Возможно, что-то пошло не так, результат обработки шаблона не совпадает с образцом")
 			}
 			wg.Done()
 		}()
 		go func() {
-			var res = ParseString(string(source), testData2)
-			if result2 != res {
+			var buff = &bytes.Buffer{}
+			if err := xtpl.ParseString(string(source), testData2, buff); err != nil {
+				t.Error(err)
+			} else if result2 != buff.String() {
 				t.Error("Возможно, что-то пошло не так, результат обработки шаблона не совпадает с образцом")
 			}
 			wg.Done()
@@ -3983,11 +3989,11 @@ func TestXtplCollection_ParseString(t *testing.T) {
 }
 
 func BenchmarkView(b *testing.B) {
-	ViewsPath("./templates_test")
-	ViewExtension("tpl")
-	CycleLimit(100)
-	Debug(false)
-	Functions(map[string]interface{}{
+	xtpl.ViewsPath("./templates_test")
+	xtpl.ViewExtension("tpl")
+	xtpl.CycleLimit(100)
+	xtpl.Debug(false)
+	xtpl.Functions(map[string]interface{}{
 		"date": func(timestamp int64, layout string) string {
 			t := time.Unix(timestamp, 0)
 			return t.UTC().Format(layout)
@@ -3996,6 +4002,8 @@ func BenchmarkView(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		var buff = &bytes.Buffer{}
-		View("index", testData1, buff)
+		if err := xtpl.View("index", testData1, buff); err != nil {
+			b.Error(err)
+		}
 	}
 }
