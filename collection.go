@@ -96,8 +96,8 @@ func View(tplPath string, data map[string]interface{}, writer io.Writer) error {
 	return xTpl.errors.Error()
 }
 
-// ParseString Обработает строку как шаблон, вернёт строку с результатом обработки
-func ParseString(source string, data map[string]interface{}, writer io.Writer) error {
+// String Обработает строку как шаблон
+func String(source string, data map[string]interface{}, writer io.Writer) error {
 	var xTpl *xtpl
 
 	if debug {
