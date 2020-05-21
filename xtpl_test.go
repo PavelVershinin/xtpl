@@ -3967,7 +3967,7 @@ func TestXtplCollection_ParseString(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		go func() {
 			var buff = &bytes.Buffer{}
-			if err := xtpl.ParseString(string(source), testData1, buff); err != nil {
+			if err := xtpl.String(string(source), testData1, buff); err != nil {
 				t.Error(err)
 			} else if result1 != buff.String() {
 				t.Error("Возможно, что-то пошло не так, результат обработки шаблона не совпадает с образцом")
@@ -3976,7 +3976,7 @@ func TestXtplCollection_ParseString(t *testing.T) {
 		}()
 		go func() {
 			var buff = &bytes.Buffer{}
-			if err := xtpl.ParseString(string(source), testData2, buff); err != nil {
+			if err := xtpl.String(string(source), testData2, buff); err != nil {
 				t.Error(err)
 			} else if result2 != buff.String() {
 				t.Error("Возможно, что-то пошло не так, результат обработки шаблона не совпадает с образцом")
