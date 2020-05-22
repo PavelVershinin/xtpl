@@ -6,4 +6,4 @@
 
 Пример использования в файле xtpl_test.go
 
-Пример синтаксиса в test_templates/index.tpl
+Пример синтаксиса в testdata/templates/index.tpl
