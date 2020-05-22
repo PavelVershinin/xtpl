@@ -74,7 +74,7 @@ var testData2 = map[string]interface{}{
 var update = flag.Bool("update", false, "update .golden files")
 
 func init() {
-	xtpl.ViewsPath("./testdata/templates")
+	xtpl.ViewsPath(filepath.Join(".", "testdata", "templates"))
 	xtpl.ViewExtension("tpl")
 	xtpl.CycleLimit(100)
 	xtpl.Debug(false)
