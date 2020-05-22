@@ -113,7 +113,7 @@ func TestXtplCollection_View(t *testing.T) {
 		t.Parallel()
 		buff := bytes.Buffer{}
 		goldenFile := filepath.Join(".", "testdata", "result_2.gold")
-		if err := xtpl.View("index", testData1, &buff); err != nil {
+		if err := xtpl.View("index", testData2, &buff); err != nil {
 			t.Fatal(err)
 		}
 		if *update {
@@ -162,7 +162,7 @@ func TestXtplCollection_String(t *testing.T) {
 		t.Parallel()
 		buff := bytes.Buffer{}
 		goldenFile := filepath.Join(".", "testdata", "result_2.gold")
-		if err := xtpl.String(string(template), testData1, &buff); err != nil {
+		if err := xtpl.String(string(template), testData2, &buff); err != nil {
 			t.Fatal(err)
 		}
 		res, err := ioutil.ReadFile(goldenFile)
