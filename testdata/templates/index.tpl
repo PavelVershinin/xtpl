@@ -135,7 +135,7 @@
 struct {
     ID: {{$struct.ID}},
     Name: {{$struct.Name}},
-    Value: {{$struct["Value"]}},
+    Value: {{$struct.Value}},
     Function: {{$struct.Function("Мама мыла раму", $struct.ID)}}
 }
 </pre>
@@ -150,6 +150,29 @@ struct {
         <li>Выведем результат выполнения функции сразу в шаблон @date(-777856620, "2006-01-02 15:04") или так {{date(-777856620, "2006-01-02 15:04")}}</li>
     </ul>
 
+    <h2>Создание map[string]interface{}</h2>
+    @exec($map = [
+        "key1" => "value 1",
+        "key2" => "value 2",
+        "key3" => "value 3",
+        "key4" => "value 4",
+        "key5" => "value 5",
+        "key6" => "value 6",
+        "key7" => "value 7",
+        "my_data" => $myData
+    ])
+
+    <ul>
+        <li>$map.key1 = {{$map.key1}}</li>
+        <li>$map.key2 = {{$map.key2}}</li>
+        <li>$map.key3 = {{$map.key3}}</li>
+        <li>$map.key4 = {{$map.key4}}</li>
+        <li>$map.key5 = {{$map.key5}}</li>
+        <li>$map.key6 = {{$map.key6}}</li>
+        <li>$map.key7 = {{$map.key7}}</li>
+        <li>$map.my_data = {{$map.my_data}}</li>
+    </ul>
+
     <h2>Комментарии</h2>
     {* Этой строки не будет видно *}
     {{-- И этой тоже --}}
@@ -157,7 +180,7 @@ struct {
     <h2>Подключение шаблонов</h2>
     @include("layouts/include")
 
-    <h1>Вывод кода шаблона без обработки</h2>
+    <h2>Вывод кода шаблона без обработки</h2>
 <pre>
     {{"
     @foreach($numbers as $number1)
@@ -171,6 +194,7 @@ struct {
     @endforeach
     "}}
 </pre>
+
 
 @endsection
 

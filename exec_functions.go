@@ -8,10 +8,10 @@ import (
 func (x *xtpl) execFunction(src []rune, function func(vars *xVarCollection) *xVar) func(vars *xVarCollection) *xVar {
 	var closeBracketPosition = getOffset(src, ")", "", true, true)
 	var lastCommaPosition = 1
-	var srcArguments []func(vars *xVarCollection) *xVar
+	var arguments []func(vars *xVarCollection) *xVar
 	for i := 1; i < closeBracketPosition; {
 		if commaPosition := getOffset(src[i:], ",", "", true, true); commaPosition > 0 {
-			srcArguments = append(srcArguments, x.exec(src[i:i+commaPosition]))
+			arguments = append(arguments, x.exec(src[i:i+commaPosition]))
 			i += commaPosition + 1
 			lastCommaPosition = i
 		} else {
@@ -20,7 +20,7 @@ func (x *xtpl) execFunction(src []rune, function func(vars *xVarCollection) *xVa
 	}
 
 	if lastCommaPosition < closeBracketPosition {
-		srcArguments = append(srcArguments, x.exec(src[lastCommaPosition:closeBracketPosition]))
+		arguments = append(arguments, x.exec(src[lastCommaPosition:closeBracketPosition]))
 	}
 
 	return func(vars *xVarCollection) (result *xVar) {
@@ -31,47 +31,7 @@ func (x *xtpl) execFunction(src []rune, function func(vars *xVarCollection) *xVa
 		}()
 		call, argumentTypes := function(vars).toFunc()
 
-		var argLen = len(srcArguments)
-		var args = make([]reflect.Value, argLen)
-		for i := 0; i < argLen; i++ {
-			v := srcArguments[i](vars)
-			switch argumentTypes[i] {
-			case reflect.Bool:
-				args[i] = reflect.ValueOf(v.toBool())
-			case reflect.Int:
-				args[i] = reflect.ValueOf(int(v.toInt()))
-			case reflect.Int8:
-				args[i] = reflect.ValueOf(int8(v.toInt()))
-			case reflect.Int16:
-				args[i] = reflect.ValueOf(int16(v.toInt()))
-			case reflect.Int32:
-				args[i] = reflect.ValueOf(int32(v.toInt()))
-			case reflect.Int64:
-				args[i] = reflect.ValueOf(v.toInt())
-			case reflect.Uint:
-				args[i] = reflect.ValueOf(uint(v.toInt()))
-			case reflect.Uint8:
-				args[i] = reflect.ValueOf(uint8(v.toInt()))
-			case reflect.Uint16:
-				args[i] = reflect.ValueOf(uint16(v.toInt()))
-			case reflect.Uint32:
-				args[i] = reflect.ValueOf(uint32(v.toInt()))
-			case reflect.Uint64:
-				args[i] = reflect.ValueOf(uint64(v.toInt()))
-			case reflect.Float32:
-				args[i] = reflect.ValueOf(float32(v.toFloat()))
-			case reflect.Float64:
-				args[i] = reflect.ValueOf(v.toFloat())
-			case reflect.String:
-				args[i] = reflect.ValueOf(v.toString())
-			case reflect.Slice:
-				args[i] = reflect.ValueOf(v.toSlice())
-			case reflect.Map:
-				args[i] = reflect.ValueOf(v.toMap())
-			default:
-				args[i] = reflect.ValueOf(v.toInterface())
-			}
-		}
+		var args = prepareArguments(arguments, argumentTypes, vars)
 		var ret = call(args)
 		if len(ret) > 0 {
 			result = xVarInit("", ret[0].Interface())
@@ -131,47 +91,7 @@ func (x *xtpl) execUserFunction(src []rune, function interface{}) func(vars *xVa
 			}
 		}()
 
-		var argLen = len(arguments)
-		var args = make([]reflect.Value, argLen)
-		for i := 0; i < argLen; i++ {
-			v := arguments[i](vars)
-			switch argumentTypes[i] {
-			case reflect.Bool:
-				args[i] = reflect.ValueOf(v.toBool())
-			case reflect.Int:
-				args[i] = reflect.ValueOf(int(v.toInt()))
-			case reflect.Int8:
-				args[i] = reflect.ValueOf(int8(v.toInt()))
-			case reflect.Int16:
-				args[i] = reflect.ValueOf(int16(v.toInt()))
-			case reflect.Int32:
-				args[i] = reflect.ValueOf(int32(v.toInt()))
-			case reflect.Int64:
-				args[i] = reflect.ValueOf(v.toInt())
-			case reflect.Uint:
-				args[i] = reflect.ValueOf(uint(v.toInt()))
-			case reflect.Uint8:
-				args[i] = reflect.ValueOf(uint8(v.toInt()))
-			case reflect.Uint16:
-				args[i] = reflect.ValueOf(uint16(v.toInt()))
-			case reflect.Uint32:
-				args[i] = reflect.ValueOf(uint32(v.toInt()))
-			case reflect.Uint64:
-				args[i] = reflect.ValueOf(uint64(v.toInt()))
-			case reflect.Float32:
-				args[i] = reflect.ValueOf(float32(v.toFloat()))
-			case reflect.Float64:
-				args[i] = reflect.ValueOf(v.toFloat())
-			case reflect.String:
-				args[i] = reflect.ValueOf(v.toString())
-			case reflect.Slice:
-				args[i] = reflect.ValueOf(v.toSlice())
-			case reflect.Map:
-				args[i] = reflect.ValueOf(v.toMap())
-			default:
-				args[i] = reflect.ValueOf(v.toInterface())
-			}
-		}
+		var args = prepareArguments(arguments, argumentTypes, vars)
 		var ret = functionOf.Call(args)
 		if len(ret) > 0 {
 			result = xVarInit("", ret[0].Interface())
@@ -179,4 +99,52 @@ func (x *xtpl) execUserFunction(src []rune, function interface{}) func(vars *xVa
 
 		return
 	}
+}
+
+func prepareArguments(arguments []func(vars *xVarCollection) *xVar, argumentTypes []reflect.Kind, vars *xVarCollection) []reflect.Value {
+	var interfaceOf = func(t reflect.Kind, v *xVar) interface{} {
+		switch t {
+		case reflect.Bool:
+			return v.toBool()
+		case reflect.Int:
+			return int(v.toInt())
+		case reflect.Int8:
+			return int8(v.toInt())
+		case reflect.Int16:
+			return int16(v.toInt())
+		case reflect.Int32:
+			return int32(v.toInt())
+		case reflect.Int64:
+			return v.toInt()
+		case reflect.Uint:
+			return uint(v.toInt())
+		case reflect.Uint8:
+			return uint8(v.toInt())
+		case reflect.Uint16:
+			return uint16(v.toInt())
+		case reflect.Uint32:
+			return uint32(v.toInt())
+		case reflect.Uint64:
+			return uint64(v.toInt())
+		case reflect.Float32:
+			return float32(v.toFloat())
+		case reflect.Float64:
+			return v.toFloat()
+		case reflect.String:
+			return v.toString()
+		case reflect.Slice:
+			return v.toSlice()
+		case reflect.Map:
+			return v.toMap()
+		default:
+			return v.toInterface()
+		}
+	}
+	var argLen = len(argumentTypes)
+	var args = make([]reflect.Value, argLen)
+	for i := 0; i < argLen; i++ {
+		v := arguments[i](vars)
+		args[i] = reflect.ValueOf(interfaceOf(argumentTypes[i], v))
+	}
+	return args
 }

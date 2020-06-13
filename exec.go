@@ -31,6 +31,34 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 		}
 	}
 
+	// Разбираем структуры в мапы
+	for i := 0; i < len(src); i++ {
+		openBracket := -1
+		closeBracket := -1
+		if openBracket = getOffset(src[i:], "[", "", true, false); openBracket > -1 {
+			closeBracket = getOffset(src[i+openBracket+1:], "]", "", true, true)
+		}
+		if openBracket > -1 && closeBracket > -1 {
+			value := strings.TrimSpace(string(src[i+openBracket+1 : i+openBracket+1+closeBracket]))
+			ms := make(map[string]string)
+			mi := make(map[string]interface{})
+			for _, line := range strings.Split(value, ",") {
+				if a := strings.Split(line, "=>"); len(a) == 2 {
+					ms[strings.TrimSpace(a[0])] = strings.TrimSpace(a[1])
+				}
+			}
+			varName := newVarName()
+			functions = append(functions, func(vars *xVarCollection) []byte {
+				for k, v := range ms {
+					mi[vars.getVar(k).toString()] = vars.getVar(v).toInterface()
+				}
+				vars.setVar(varName, mi)
+				return nil
+			})
+			src = append(src[:i+openBracket], append([]rune(varName), src[i+openBracket+1+closeBracket+1:]...)...)
+		}
+	}
+
 	// Выгребаем пользовательские функции
 	for i := 0; i < len(src); i++ {
 		if f, offset := x.userFunction(src[i:], false); f != nil {
@@ -116,23 +144,6 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 	var reAnd = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?\&\&[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
 
 	var reMultiVars = regexp.MustCompile(`(?is)(\$[a-z0-9_]+\.[a-z0-9_\.]+)`)
-	var reArrayVars = regexp.MustCompile(`(?is)(\$[a-z0-9_]+\[[^\]]+\][a-z0-9_\]\[\$\.]*)`)
-
-	// Массивы, доступ через квадратные скобки
-	for reArrayVars.MatchString(expr) {
-		expr = reArrayVars.ReplaceAllStringFunc(expr, func(s string) string {
-			var varName = newVarName()
-			var fields = strings.Split(s, "[")
-			for i := 0; i < len(fields); i++ {
-				fields[i] = strings.TrimRight(fields[i], "]")
-			}
-			functions = append(functions, func(vars *xVarCollection) []byte {
-				vars.setVar(varName, vars.getMultiVar(fields).toInterface())
-				return nil
-			})
-			return varName
-		})
-	}
 
 	// Структуры, доступ через точку
 	for reMultiVars.MatchString(expr) {
