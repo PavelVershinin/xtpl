@@ -347,6 +347,20 @@ func (xv *xVar) toSlice() []*xVar {
 	return nil
 }
 
+func (xv *xVar) toSliceWithInterface() []interface{} {
+	switch xv.vType {
+	case varTypeSlice,
+		varTypeMap,
+		varTypeInterface:
+		var s = make([]interface{}, xv.Collection.len())
+		for i, key := range xv.Collection.keys() {
+			s[i] = xv.Collection.getVar(key).toInterface()
+		}
+		return s
+	}
+	return nil
+}
+
 func (xv *xVar) toMap() map[string]*xVar {
 	switch xv.vType {
 	case varTypeSlice,
@@ -355,6 +369,20 @@ func (xv *xVar) toMap() map[string]*xVar {
 		var m = make(map[string]*xVar)
 		for _, key := range xv.Collection.keys() {
 			m[key] = xv.Collection.getVar(key)
+		}
+		return m
+	}
+	return nil
+}
+
+func (xv *xVar) toMapWithInterface() map[string]interface{} {
+	switch xv.vType {
+	case varTypeSlice,
+		varTypeMap,
+		varTypeInterface:
+		var m = make(map[string]interface{})
+		for _, key := range xv.Collection.keys() {
+			m[key] = xv.Collection.getVar(key).toInterface()
 		}
 		return m
 	}
