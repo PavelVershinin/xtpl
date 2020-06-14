@@ -19,8 +19,8 @@
     <ul>
     @for ($i = 0; $i < 10; $i++)
         <li>
-            @if ($strings[$i] != "")
-                В переменной $strings, под индексом {{$i}} содержится значение {{$strings[$i]}}
+            @if ($strings.$i != "")
+                В переменной $strings, под индексом {{$i}} содержится значение {{$strings.$i}}
             @else
                 В переменной $strings, под индексом {{$i}} нет значения
             @endif
@@ -31,7 +31,7 @@
     <h2>Цикл foreach</h2>
     <ul>
     @foreach ($strings as $i => $value)
-        <li>$strings[{{$i}}] == {{$value}}</li>
+        <li>$strings.{{$i}} == {{$value}}</li>
     @endforeach
     </ul>
 

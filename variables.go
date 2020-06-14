@@ -30,7 +30,7 @@ func (xvc *xVarCollection) getMultiVar(fields []string) *xVar {
 	var res *xVar
 	res = xvc.getVar(fields[0])
 	for i := 1; i < len(fields); i++ {
-		var field = fields[i]
+		field := fields[i]
 		if strings.HasPrefix(field, "$") {
 			field = xvc.getVar(field).toString()
 		}

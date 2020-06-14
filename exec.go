@@ -143,7 +143,7 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 	var reOr = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?\|\|[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
 	var reAnd = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?\&\&[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
 
-	var reMultiVars = regexp.MustCompile(`(?is)(\$[a-z0-9_]+\.[a-z0-9_\.]+)`)
+	var reMultiVars = regexp.MustCompile(`(?is)(\$[a-z0-9_]+\.[\$a-z0-9_\.]+)`)
 
 	// Структуры, доступ через точку
 	for reMultiVars.MatchString(expr) {
