@@ -2013,7 +2013,8 @@ struct {
     ID: 3,
     Name: my name 2,
     Value: my value 2,
-    Function: Мама мыла раму 3 часов
+    Function: Мама мыла раму 3 часов,
+    Pointer: Test the pointer
 }
 </pre>
         </li>
@@ -2025,12 +2026,16 @@ struct {
     ID: 4,
     Name: my name 2 2,
     Value: my value 2 2,
-    Function: Мама мыла раму 4 часов
+    Function: Мама мыла раму 4 часов,
+    Pointer: 
 }
 </pre>
         </li>
     
     </ul>
+
+    <h2>Обращение по ссылке</h2>
+    <div></div>
 
     <h2>Вызов пользовательской функции</h2>
     <ul>

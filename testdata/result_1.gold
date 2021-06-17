@@ -1718,7 +1718,8 @@ struct {
     ID: 1,
     Name: my name,
     Value: my value,
-    Function: Мама мыла раму 1 дней
+    Function: Мама мыла раму 1 дней,
+    Pointer: Test the pointer
 }
 </pre>
         </li>
@@ -1730,12 +1731,16 @@ struct {
     ID: 2,
     Name: my name 2,
     Value: my value 2,
-    Function: Мама мыла раму 2 дней
+    Function: Мама мыла раму 2 дней,
+    Pointer: 
 }
 </pre>
         </li>
     
     </ul>
+
+    <h2>Обращение по ссылке</h2>
+    <div>Test the pointer</div>
 
     <h2>Вызов пользовательской функции</h2>
     <ul>

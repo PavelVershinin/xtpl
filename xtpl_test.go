@@ -13,6 +13,12 @@ import (
 	"github.com/PavelVershinin/xtpl"
 )
 
+var ptr = struct {
+	Value string
+}{
+	Value: "Test the pointer",
+}
+
 var testData1 = map[string]interface{}{
 	"page_title": "Тестовая страница",
 	"strings":    []string{"Первый", "Второй", "Третий", "048465450"},
@@ -22,6 +28,7 @@ var testData1 = map[string]interface{}{
 		Name     string
 		Value    string
 		Function func(s string, i int) string
+		Pointer  interface{}
 	}{
 		{
 			1,
@@ -30,6 +37,7 @@ var testData1 = map[string]interface{}{
 			func(s string, i int) string {
 				return s + " " + strconv.Itoa(i) + " дней"
 			},
+			&ptr,
 		},
 		{
 			2,
@@ -38,8 +46,10 @@ var testData1 = map[string]interface{}{
 			func(s string, i int) string {
 				return s + " " + strconv.Itoa(i) + " дней"
 			},
+			nil,
 		},
 	},
+	"pointer": &ptr,
 }
 
 var testData2 = map[string]interface{}{
@@ -51,6 +61,7 @@ var testData2 = map[string]interface{}{
 		Name     string
 		Value    string
 		Function func(s string, i int) string
+		Pointer  interface{}
 	}{
 		{
 			3,
@@ -59,6 +70,7 @@ var testData2 = map[string]interface{}{
 			func(s string, i int) string {
 				return s + " " + strconv.Itoa(i) + " часов"
 			},
+			&ptr,
 		},
 		{
 			4,
@@ -67,6 +79,7 @@ var testData2 = map[string]interface{}{
 			func(s string, i int) string {
 				return s + " " + strconv.Itoa(i) + " часов"
 			},
+			nil,
 		},
 	},
 }

@@ -136,12 +136,16 @@ struct {
     ID: {{$struct.ID}},
     Name: {{$struct.Name}},
     Value: {{$struct.Value}},
-    Function: {{$struct.Function("Мама мыла раму", $struct.ID)}}
+    Function: {{$struct.Function("Мама мыла раму", $struct.ID)}},
+    Pointer: {{$struct.Pointer.Value}}
 }
 </pre>
         </li>
     @endforeach
     </ul>
+
+    <h2>Обращение по ссылке</h2>
+    <div>{{$pointer.Value}}</div>
 
     <h2>Вызов пользовательской функции</h2>
     <ul>

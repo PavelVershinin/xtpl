@@ -194,20 +194,8 @@ func xVarInit(name string, value interface{}) *xVar {
 			}
 		}
 	case reflect.Ptr:
-		xv.vType = varTypeMap
-		if valueOf.Elem().IsValid() {
-			for i := 0; i < valueOf.Elem().NumField(); i++ {
-				field := valueOf.Elem().Field(i)
-				if field.IsValid() && field.CanInterface() {
-					xv.Collection.setVar(valueOf.Elem().Type().Field(i).Name, field.Interface())
-				}
-			}
-			for i := 0; i < valueOf.Elem().NumMethod(); i++ {
-				method := valueOf.Elem().Method(i)
-				if method.IsValid() && method.CanInterface() {
-					xv.Collection.setVar(valueOf.Elem().Type().Method(i).Name, method.Interface())
-				}
-			}
+		if valueOf.Elem().IsValid() && valueOf.Elem().CanInterface() {
+			xv = xVarInit(name, valueOf.Elem().Interface())
 		}
 	case reflect.Func:
 		xv.vType = varTypeFunc
