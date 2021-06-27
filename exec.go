@@ -6,6 +6,33 @@ import (
 	"strings"
 )
 
+var (
+	regVarFuncs = regexp.MustCompile(`(?is)^\$([a-z0-9_\[\]."']+)$`)
+
+	regAssign = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?=[\s]?(.*)`)
+	regPlusPlus = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?\+\+`)
+	regMinusMinus = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?--`)
+	regShortStyle = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?[\+\-\*\/\\\%\^]{1}=[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
+	regMultiple = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?\*[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
+	regExponentiation = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?\^[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
+	regDivision = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?/[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
+	regDivisionWithoutRemainder = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?\\[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
+	regDivisionRemainder = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?%[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
+	regAddition = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?\+[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
+	regSubtraction = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?-[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
+
+	regEqual = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?==[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
+	regNotEqual = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?(!=|<>)[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
+	regMore = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?>[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
+	regLess = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?<[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
+	regMoreOrEqual = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?>=[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
+	regLessOrEqual = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?<=[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
+	regOr = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?\|\|[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
+	regAnd = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?\&\&[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
+
+	reMultiVars = regexp.MustCompile(`(?is)(\$[a-z0-9_]+\.[\$a-z0-9_\.]+)`)
+)
+
 func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 	var functions []treeNode
 
@@ -79,7 +106,7 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 				break
 			}
 
-			if regexp.MustCompile(`(?is)^\$([a-z0-9_\[\]."']+)$`).MatchString(string(src[i : i+openBracketPosition])) {
+			if regVarFuncs.MatchString(string(src[i : i+openBracketPosition])) {
 				closeBracketPosition := getOffset(src[i+openBracketPosition:], ")", "", true, true)
 				if closeBracketPosition == -1 {
 					break
@@ -122,28 +149,6 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 	// К этому моменту уже должно оставаться чистое выражение, без вызовов функций и скобок
 	var expr = string(src)
 
-	var reAssign = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?=[\s]?(.*)`)
-	var rePlusPlus = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?\+\+`)
-	var reMinusMinus = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?--`)
-	var reShortStyle = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?[\+\-\*\/\\\%\^]{1}=[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
-	var reMultiple = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?\*[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
-	var reExponentiation = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?\^[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
-	var reDivision = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?/[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
-	var reDivisionWithoutRemainder = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?\\[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
-	var reDivisionRemainder = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?%[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
-	var reAddition = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?\+[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
-	var reSubtraction = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?-[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
-
-	var reEqual = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?==[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
-	var reNotEqual = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?(!=|<>)[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
-	var reMore = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?>[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
-	var reLess = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?<[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
-	var reMoreOrEqual = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?>=[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
-	var reLessOrEqual = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?<=[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
-	var reOr = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?\|\|[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
-	var reAnd = regexp.MustCompile(`(?is)(\$[a-z0-9_]+|[0-9.]+)[\s]?\&\&[\s]?(\$[a-z0-9_]+|[0-9.]+)`)
-
-	var reMultiVars = regexp.MustCompile(`(?is)(\$[a-z0-9_]+\.[\$a-z0-9_\.]+)`)
 
 	// Структуры, доступ через точку
 	for reMultiVars.MatchString(expr) {
@@ -159,23 +164,23 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 	}
 
 	// Инкремент
-	for rePlusPlus.MatchString(expr) {
-		expr = rePlusPlus.ReplaceAllStringFunc(expr, func(s string) string {
+	for regPlusPlus.MatchString(expr) {
+		expr = regPlusPlus.ReplaceAllStringFunc(expr, func(s string) string {
 			var varName = strings.TrimSpace(strings.Split(s, "++")[0])
 			return varName + " = " + varName + " + 1"
 		})
 	}
 
 	// Декремент
-	for reMinusMinus.MatchString(expr) {
-		expr = reMinusMinus.ReplaceAllStringFunc(expr, func(s string) string {
+	for regMinusMinus.MatchString(expr) {
+		expr = regMinusMinus.ReplaceAllStringFunc(expr, func(s string) string {
 			var varName = strings.TrimSpace(strings.Split(s, "--")[0])
 			return varName + " = " + varName + " - 1"
 		})
 	}
 
-	for reShortStyle.MatchString(expr) {
-		expr = reShortStyle.ReplaceAllStringFunc(expr, func(s string) string {
+	for regShortStyle.MatchString(expr) {
+		expr = regShortStyle.ReplaceAllStringFunc(expr, func(s string) string {
 			var firstVar, secondVar, operator string
 			var arr []string
 			switch {
@@ -210,8 +215,8 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 	}
 
 	// Возведение в степень
-	for reExponentiation.MatchString(expr) {
-		expr = reExponentiation.ReplaceAllStringFunc(expr, func(s string) string {
+	for regExponentiation.MatchString(expr) {
+		expr = regExponentiation.ReplaceAllStringFunc(expr, func(s string) string {
 			var varName = newVarName()
 			var arr = strings.Split(s, "^")
 			var firstVar = strings.TrimSpace(arr[0])
@@ -237,8 +242,8 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 	}
 
 	// Умножение
-	for reMultiple.MatchString(expr) {
-		expr = reMultiple.ReplaceAllStringFunc(expr, func(s string) string {
+	for regMultiple.MatchString(expr) {
+		expr = regMultiple.ReplaceAllStringFunc(expr, func(s string) string {
 			var varName = newVarName()
 			var arr = strings.Split(s, "*")
 			var firstVar = strings.TrimSpace(arr[0])
@@ -264,8 +269,8 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 	}
 
 	//Деление
-	for reDivision.MatchString(expr) {
-		expr = reDivision.ReplaceAllStringFunc(expr, func(s string) string {
+	for regDivision.MatchString(expr) {
+		expr = regDivision.ReplaceAllStringFunc(expr, func(s string) string {
 			var varName = newVarName()
 			var arr = strings.Split(s, "/")
 			var firstVar = strings.TrimSpace(arr[0])
@@ -296,8 +301,8 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 	}
 
 	//Деление без остатка
-	for reDivisionWithoutRemainder.MatchString(expr) {
-		expr = reDivisionWithoutRemainder.ReplaceAllStringFunc(expr, func(s string) string {
+	for regDivisionWithoutRemainder.MatchString(expr) {
+		expr = regDivisionWithoutRemainder.ReplaceAllStringFunc(expr, func(s string) string {
 			var varName = newVarName()
 			var arr = strings.Split(s, "\\")
 			var firstVar = strings.TrimSpace(arr[0])
@@ -328,8 +333,8 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 	}
 
 	//Остаток от деления
-	for reDivisionRemainder.MatchString(expr) {
-		expr = reDivisionRemainder.ReplaceAllStringFunc(expr, func(s string) string {
+	for regDivisionRemainder.MatchString(expr) {
+		expr = regDivisionRemainder.ReplaceAllStringFunc(expr, func(s string) string {
 			var varName = newVarName()
 			var arr = strings.Split(s, "%")
 			var firstVar = strings.TrimSpace(arr[0])
@@ -360,8 +365,8 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 	}
 
 	// Сложение
-	for reAddition.MatchString(expr) {
-		expr = reAddition.ReplaceAllStringFunc(expr, func(s string) string {
+	for regAddition.MatchString(expr) {
+		expr = regAddition.ReplaceAllStringFunc(expr, func(s string) string {
 			var varName = newVarName()
 			var arr = strings.Split(s, "+")
 			var firstVar = strings.TrimSpace(arr[0])
@@ -391,8 +396,8 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 	}
 
 	// Вычитание
-	for reSubtraction.MatchString(expr) {
-		expr = reSubtraction.ReplaceAllStringFunc(expr, func(s string) string {
+	for regSubtraction.MatchString(expr) {
+		expr = regSubtraction.ReplaceAllStringFunc(expr, func(s string) string {
 			var varName = newVarName()
 			var arr = strings.Split(s, "-")
 			var firstVar = strings.TrimSpace(arr[0])
@@ -418,8 +423,8 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 	}
 
 	// Равно
-	for reEqual.MatchString(expr) {
-		expr = reEqual.ReplaceAllStringFunc(expr, func(s string) string {
+	for regEqual.MatchString(expr) {
+		expr = regEqual.ReplaceAllStringFunc(expr, func(s string) string {
 			var varName = newVarName()
 			var arr = strings.Split(s, "==")
 			var firstVar = strings.TrimSpace(arr[0])
@@ -445,8 +450,8 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 	}
 
 	// НЕ Равно
-	for reNotEqual.MatchString(expr) {
-		expr = reNotEqual.ReplaceAllStringFunc(expr, func(s string) string {
+	for regNotEqual.MatchString(expr) {
+		expr = regNotEqual.ReplaceAllStringFunc(expr, func(s string) string {
 			var sep = "!="
 			if !strings.Contains(s, sep) {
 				sep = "<>"
@@ -476,8 +481,8 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 	}
 
 	// Больше
-	for reMore.MatchString(expr) {
-		expr = reMore.ReplaceAllStringFunc(expr, func(s string) string {
+	for regMore.MatchString(expr) {
+		expr = regMore.ReplaceAllStringFunc(expr, func(s string) string {
 			var varName = newVarName()
 			var arr = strings.Split(s, ">")
 			var firstVar = strings.TrimSpace(arr[0])
@@ -503,8 +508,8 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 	}
 
 	// Меньше
-	for reLess.MatchString(expr) {
-		expr = reLess.ReplaceAllStringFunc(expr, func(s string) string {
+	for regLess.MatchString(expr) {
+		expr = regLess.ReplaceAllStringFunc(expr, func(s string) string {
 			var varName = newVarName()
 			var arr = strings.Split(s, "<")
 			var firstVar = strings.TrimSpace(arr[0])
@@ -530,8 +535,8 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 	}
 
 	// Меньше или равно
-	for reLessOrEqual.MatchString(expr) {
-		expr = reLessOrEqual.ReplaceAllStringFunc(expr, func(s string) string {
+	for regLessOrEqual.MatchString(expr) {
+		expr = regLessOrEqual.ReplaceAllStringFunc(expr, func(s string) string {
 			var varName = newVarName()
 			var arr = strings.Split(s, "<=")
 			var firstVar = strings.TrimSpace(arr[0])
@@ -557,8 +562,8 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 	}
 
 	// Больше или равно
-	for reMoreOrEqual.MatchString(expr) {
-		expr = reMoreOrEqual.ReplaceAllStringFunc(expr, func(s string) string {
+	for regMoreOrEqual.MatchString(expr) {
+		expr = regMoreOrEqual.ReplaceAllStringFunc(expr, func(s string) string {
 			var varName = newVarName()
 			var arr = strings.Split(s, ">=")
 			var firstVar = strings.TrimSpace(arr[0])
@@ -584,8 +589,8 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 	}
 
 	// И
-	for reAnd.MatchString(expr) {
-		expr = reAnd.ReplaceAllStringFunc(expr, func(s string) string {
+	for regAnd.MatchString(expr) {
+		expr = regAnd.ReplaceAllStringFunc(expr, func(s string) string {
 			var varName = newVarName()
 			var arr = strings.Split(s, "&&")
 			var firstVar = strings.TrimSpace(arr[0])
@@ -611,8 +616,8 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 	}
 
 	// Или
-	for reOr.MatchString(expr) {
-		expr = reOr.ReplaceAllStringFunc(expr, func(s string) string {
+	for regOr.MatchString(expr) {
+		expr = regOr.ReplaceAllStringFunc(expr, func(s string) string {
 			var varName = newVarName()
 			var arr = strings.Split(s, "||")
 			var firstVar = strings.TrimSpace(arr[0])
@@ -638,8 +643,8 @@ func (x *xtpl) exec(src []rune) func(vars *xVarCollection) *xVar {
 	}
 
 	// Присвоение
-	for reAssign.MatchString(expr) {
-		expr = reAssign.ReplaceAllStringFunc(expr, func(s string) string {
+	for regAssign.MatchString(expr) {
+		expr = regAssign.ReplaceAllStringFunc(expr, func(s string) string {
 			var arr = strings.SplitN(s, "=", 2)
 			var varName = strings.TrimSpace(arr[0])
 			var value = x.exec([]rune(strings.TrimSpace(arr[1])))

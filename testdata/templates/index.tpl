@@ -202,3 +202,6 @@ struct {
 
 @endsection
 
+@section("section2")
+    <div>Секция из файла index.tpl</div>
+@endsection

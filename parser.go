@@ -7,10 +7,18 @@ import (
 	"strings"
 )
 
+var (
+	regSections = regexp.MustCompile(`(?Us)@section\([^)]+\).*@endsection`)
+	regExtends = regexp.MustCompile(`(?U)@extends\([^)]+\)`)
+	regIncludes = regexp.MustCompile(`(?U)@include\([^)]+\)`)
+	regYields = regexp.MustCompile(`(?U)@yield\([^)]+\)`)
+	regCutSpaces = regexp.MustCompile(`@[a-z]+[\s]+\(`)
+)
+
 func (x *xtpl) preBuild(src string) []rune {
 	var sections = make(map[string]string)
 	var cutSections = func(src string) string {
-		return strings.TrimSpace(regexp.MustCompile(`(?Us)@section\([^)]+\).*@endsection`).ReplaceAllStringFunc(src, func(s string) string {
+		return strings.TrimSpace(regSections.ReplaceAllStringFunc(src, func(s string) string {
 			var sectionName = strings.Trim(strings.SplitN(strings.SplitN(s, ")", 2)[0], "(", 2)[1], `"'`)
 			var sectionData = strings.TrimSpace(strings.SplitN(strings.SplitN(s, "@endsection", 2)[0], ")", 2)[1])
 			sections[sectionName] += sectionData
@@ -20,7 +28,7 @@ func (x *xtpl) preBuild(src string) []rune {
 	src = strings.TrimSpace(src)
 
 	if strings.HasPrefix(src, "@extends(") {
-		src = regexp.MustCompile(`(?U)@extends\([^)]+\)`).ReplaceAllStringFunc(src, func(s string) string {
+		src = regExtends.ReplaceAllStringFunc(src, func(s string) string {
 			s = strings.Split(s, "(")[1]
 			s = strings.Split(s, ")")[0]
 			s = strings.Trim(s, `"'`)
@@ -28,7 +36,7 @@ func (x *xtpl) preBuild(src string) []rune {
 		})
 	}
 
-	src = regexp.MustCompile(`(?U)@include\([^)]+\)`).ReplaceAllStringFunc(src, func(s string) string {
+	src = regIncludes.ReplaceAllStringFunc(src, func(s string) string {
 		s = strings.Split(s, "(")[1]
 		s = strings.Split(s, ")")[0]
 		s = strings.Trim(s, `"'`)
@@ -37,7 +45,7 @@ func (x *xtpl) preBuild(src string) []rune {
 
 	src = cutSections(src)
 
-	src = regexp.MustCompile(`(?U)@yield\([^)]+\)`).ReplaceAllStringFunc(src, func(s string) string {
+	src = regYields.ReplaceAllStringFunc(src, func(s string) string {
 		var arr = strings.Split(strings.SplitN(strings.SplitN(s, "(", 2)[1], ")", 2)[0], ",")
 		if len(arr) == 0 {
 			return ""
@@ -52,7 +60,7 @@ func (x *xtpl) preBuild(src string) []rune {
 		return strings.Trim(strings.TrimSpace(arr[1]), `"'`)
 	})
 
-	src = regexp.MustCompile(`@[a-z]+[\s]+\(`).ReplaceAllStringFunc(src, func(s string) string {
+	src = regCutSpaces.ReplaceAllStringFunc(src, func(s string) string {
 		return strings.Join(strings.Fields(s), "")
 	})
 

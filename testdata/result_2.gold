@@ -2079,5 +2079,8 @@ struct {
     @endforeach
     
 </pre>
+    <div>Секция из файла layouts/include.tpl</div>
+    <div>Секция из файла index.tpl</div>
+    <div>Секция из файла app.tpl</div>
 </body>
 </html>
