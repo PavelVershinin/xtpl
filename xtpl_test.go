@@ -2,7 +2,9 @@ package xtpl_test
 
 import (
 	"bytes"
+	"embed"
 	"flag"
+	"io/fs"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -86,8 +88,11 @@ var testData2 = map[string]interface{}{
 
 var update = flag.Bool("update", false, "update .golden files")
 
+//go:embed all:testdata
+var embededFiles embed.FS
+
 func init() {
-	xtpl.ViewsPath(filepath.Join(".", "testdata", "templates"))
+	xtpl.ViewsPath(filepath.Join(".", "templates"))
 	xtpl.ViewExtension("tpl")
 	xtpl.CycleLimit(100)
 	xtpl.Debug(false)
@@ -97,6 +102,13 @@ func init() {
 			return t.UTC().Format(layout)
 		},
 	})
+
+	fsys, err := fs.Sub(embededFiles, "testdata")
+	if err != nil {
+		panic(err)
+	}
+
+	xtpl.EmbeddedFs(fsys)
 }
 
 func TestXtplCollection_View(t *testing.T) {

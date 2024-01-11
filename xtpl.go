@@ -2,7 +2,7 @@ package xtpl
 
 import (
 	"io"
-	"io/ioutil"
+	"io/fs"
 	"os"
 )
 
@@ -28,10 +28,30 @@ func xtplInitFromSource(src string) *xtpl {
 }
 
 func (x *xtpl) tplSource(tplPath string) string {
-	b, err := ioutil.ReadFile(viewsPath + string(os.PathSeparator) + tplPath + "." + viewExtension)
+	var file fs.File
+	var err error
+
+	path := viewsPath + string(os.PathSeparator) + tplPath + "." + viewExtension
+
+	if embeddedFS != nil {
+		file, err = embeddedFS.Open(path)
+	} else {
+		file, err = os.Open(path)
+	}
+
 	if err != nil {
 		return x.errors.Add(err)
 	}
+
+	defer func() {
+		_ = file.Close()
+	}()
+
+	b, err := io.ReadAll(file)
+	if err != nil {
+		return x.errors.Add(err)
+	}
+
 	return string(b)
 }
 

@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"io"
+	"io/fs"
 	"sync"
 )
 
@@ -14,6 +15,7 @@ var (
 	viewExtension string
 	cyclesLimit   uint
 	debug         bool
+	embeddedFS    fs.FS
 	serialID      *serial
 )
 
@@ -33,6 +35,10 @@ func ViewsPath(path string) {
 		collection[fileName] = xtplInit(fileName)
 	}
 	m.Unlock()
+}
+
+func EmbeddedFs(fs fs.FS) {
+	embeddedFS = fs
 }
 
 // ViewExtension Расширение файлов шаблона
