@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"embed"
 	"flag"
-	"io/fs"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -89,10 +87,10 @@ var testData2 = map[string]interface{}{
 var update = flag.Bool("update", false, "update .golden files")
 
 //go:embed all:testdata
-var embededFiles embed.FS
+var embeddedFS embed.FS
 
 func init() {
-	xtpl.ViewsPath(filepath.Join(".", "templates"))
+	xtpl.ViewsPath(filepath.Join(".", "testdata", "templates"))
 	xtpl.ViewExtension("tpl")
 	xtpl.CycleLimit(100)
 	xtpl.Debug(false)
@@ -103,12 +101,7 @@ func init() {
 		},
 	})
 
-	fsys, err := fs.Sub(embededFiles, "testdata")
-	if err != nil {
-		panic(err)
-	}
-
-	xtpl.EmbeddedFs(fsys)
+	xtpl.EmbeddedFs(embeddedFS)
 }
 
 func TestXtplCollection_View(t *testing.T) {
@@ -121,11 +114,11 @@ func TestXtplCollection_View(t *testing.T) {
 		}
 		if *update {
 			t.Log("update golden file")
-			if err := ioutil.WriteFile(goldenFile, buff.Bytes(), os.ModePerm); err != nil {
+			if err := os.WriteFile(goldenFile, buff.Bytes(), os.ModePerm); err != nil {
 				t.Fatalf("error writing golden file: %s", err)
 			}
 		}
-		res, err := ioutil.ReadFile(goldenFile)
+		res, err := os.ReadFile(goldenFile)
 		if err != nil {
 			t.Fatalf("error reading golden file: %s", err)
 		}
@@ -143,11 +136,11 @@ func TestXtplCollection_View(t *testing.T) {
 		}
 		if *update {
 			t.Log("update golden file")
-			if err := ioutil.WriteFile(goldenFile, buff.Bytes(), os.ModePerm); err != nil {
+			if err := os.WriteFile(goldenFile, buff.Bytes(), os.ModePerm); err != nil {
 				t.Fatalf("error writing golden file: %s", err)
 			}
 		}
-		res, err := ioutil.ReadFile(goldenFile)
+		res, err := os.ReadFile(goldenFile)
 		if err != nil {
 			t.Fatalf("error reading golden file: %s", err)
 		}
@@ -162,7 +155,7 @@ func TestXtplCollection_String(t *testing.T) {
 		t.Skip()
 	}
 
-	template, err := ioutil.ReadFile(filepath.Join(".", "testdata", "templates", "index.tpl"))
+	template, err := os.ReadFile(filepath.Join(".", "testdata", "templates", "index.tpl"))
 	if err != nil {
 		t.Fatalf("error reading template file: %s", err)
 	}
@@ -174,7 +167,7 @@ func TestXtplCollection_String(t *testing.T) {
 		if err := xtpl.String(string(template), testData1, &buff); err != nil {
 			t.Fatal(err)
 		}
-		res, err := ioutil.ReadFile(goldenFile)
+		res, err := os.ReadFile(goldenFile)
 		if err != nil {
 			t.Fatalf("error reading golden file: %s", err)
 		}
@@ -190,7 +183,7 @@ func TestXtplCollection_String(t *testing.T) {
 		if err := xtpl.String(string(template), testData2, &buff); err != nil {
 			t.Fatal(err)
 		}
-		res, err := ioutil.ReadFile(goldenFile)
+		res, err := os.ReadFile(goldenFile)
 		if err != nil {
 			t.Fatalf("error reading golden file: %s", err)
 		}
